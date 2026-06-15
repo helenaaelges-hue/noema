@@ -1,8 +1,9 @@
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, Tooltip } from "recharts";
+import Link from "next/link";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
-const data = [
+const moodData = [
     { day: "Mon", mood: 6},
     { day: "Tue", mood: 7},
     { day: "Wed", mood: 5},
@@ -12,15 +13,42 @@ const data = [
 
 export default function AnalyticsPage() {
     return (
-        <main className="p-8">
-            <h1 className="text-3xl font-bold mb-6">Analytics</h1>
+        <main className="p-8 max-w-4xl mx-auto">
+            <Link href="/">&larr; Back to Home</Link>
 
-            <LineChart width={500} height={300} data={data}>
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="mood" />
-            </LineChart>
+            <h1 className="text-3xl font-bold mt-4mb-2">
+                Analytics
+            </h1>
+
+            <p className="mb-8">
+                Example visualization of mood data over time.
+            </p>
+
+            <div className="border rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Mood Trend</h2>
+
+                <LineChart
+                    width={700}
+                    height={350}
+                    data={moodData}
+                >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" />
+                    <YAxis domain={[0, 10]} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="mood" />
+                </LineChart>
+            </div>
+            
+            <div className="mt-8 border rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-2">
+                    Example Insight
+                </h2>
+
+                <p>
+                    Average mood was higher on days following exercise activities.
+                </p>
+            </div>
         </main>
     );
 }
