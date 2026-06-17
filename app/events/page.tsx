@@ -1,24 +1,66 @@
+"use client";
+
+import {useState} from "react";
 import Link from "next/link";
 
 export default function EventsPage() {
+    const [category, setCategory] = useState("");
+    const [value, setValue] = useState("");
+    const [trigger, setTrigger] = useState("");
+    const [notes, setNotes] = useState("");
+
+    async function saveEvent() {
+
+           if (!category || !value) {
+            alert("Please select a category and enter a value.");
+            return;
+        }
+        
+        const response = await fetch("/api/events", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                category,
+                value,
+                trigger,
+                notes,
+            }),
+        });
+
+        if (response.ok) {
+            alert("Event saved!");
+            setCategory("");
+            setValue("");
+            setTrigger("");
+            setNotes("");
+        }
+    }
+
     return (
         <main className="p-8 max-w-xl mx-auto">
            <Link href="/">&larr; Back to Home</Link>
            
             <h1 className="text-3xl font-bold mt-4 mb-6">Event Entry</h1>
 
-            <form className="flex felx-col gap-4">
+            <form className="flex flex-col gap-4">
 
                 <div>
                     <label>Category</label>
 
-                    <select className="border p-2 w-full">
-                        <option>Mood</option>
-                        <option>Sleep</option>
-                        <option>Exercise</option>
-                        <option>Medication</option>
-                        <option>Work</option>
-                        <option>Social</option>
+                    <select
+                        className="border p-2 w-full"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                    >
+                            <option value="">Select category...</option>
+                            <option value="Mood">Mood</option>
+                            <option value="Sleep">Sleep</option>
+                            <option value="Exercise">Exercise</option>
+                            <option value="Medication">Medication</option>
+                            <option value="Work">Work</option>
+                            <option value="Social">Social</option>
                     </select>
 
                     <h2 className="text-xl font-semibold mt-8">
@@ -46,19 +88,22 @@ export default function EventsPage() {
                         type="text"
                         className="border p-2 w-full"
                         placeholder="e.g. Happy, 8 hours, Gym"
+                        value={value}
+                        onChange={(e) => setValue(e.target.value)}
                     />
                 </div>
 
                 <div>
                     <label>Trigger</label>
 
-                    <select className="border p-2 w-full">
-                        <option>Partner Conflict</option>
-                        <option>Work Stress</option>
-                        <option>Poor Sleep</option>
-                        <option>Exercise</option>
-                        <option>Medication</option>
-                        <option>Other</option>
+                    <select className="border p-2 w-full" value={trigger} onChange={(e) => setTrigger(e.target.value)}>
+                        <option value="">Select trigger...</option>
+                        <option value="Partner Conflict">Partner Conflict</option>
+                        <option value="Work Stress">Work Stress</option>
+                        <option value="Poor Sleep">Poor Sleep</option>
+                        <option value="Exercise">Exercise</option>
+                        <option value="Medication">Medication</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
 
@@ -69,12 +114,14 @@ export default function EventsPage() {
                         className="border p-2 w-full"
                         rows={4}
                         placeholder="Additional details..."
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
                     />
                 </div>
 
                 <button
-                    type="submit"
-                    className="border rounded p-2"
+                    type="button"
+                    onClick={saveEvent}
                 >
                     Save Event
                 </button>
