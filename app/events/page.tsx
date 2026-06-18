@@ -6,6 +6,7 @@ import Link from "next/link";
 export default function EventsPage() {
     const [category, setCategory] = useState("");
     const [value, setValue] = useState("");
+    const [moodScore, setMoodScore] = useState("");
     const [trigger, setTrigger] = useState("");
     const [notes, setNotes] = useState("");
 
@@ -15,7 +16,7 @@ export default function EventsPage() {
             alert("Please select a category and enter a value.");
             return;
         }
-        
+
         const response = await fetch("/api/events", {
             method: "POST",
             headers: {
@@ -24,6 +25,7 @@ export default function EventsPage() {
             body: JSON.stringify({
                 category,
                 value,
+                moodScore,
                 trigger,
                 notes,
             }),
@@ -33,6 +35,7 @@ export default function EventsPage() {
             alert("Event saved!");
             setCategory("");
             setValue("");
+            setMoodScore("");
             setTrigger("");
             setNotes("");
         }
@@ -40,7 +43,7 @@ export default function EventsPage() {
 
     return (
         <main className="p-8 max-w-xl mx-auto">
-           <Link href="/">&larr; Back to Home</Link>
+           <Link href="/">&larr; Home</Link>
            
             <h1 className="text-3xl font-bold mt-4 mb-6">Event Entry</h1>
 
@@ -92,6 +95,21 @@ export default function EventsPage() {
                         onChange={(e) => setValue(e.target.value)}
                     />
                 </div>
+
+                {category === "Mood" && (
+                    <div>
+                        <label>Mood Score (0-10)</label>
+                        
+                        <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            className="border p-2 w-full"
+                            value={moodScore}
+                            onChange={(e) => setMoodScore(e.target.value)}
+                        />
+                    </div>
+                )}
 
                 <div>
                     <label>Trigger</label>

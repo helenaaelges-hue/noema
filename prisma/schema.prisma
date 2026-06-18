@@ -11,6 +11,7 @@ model Event {
   id        Int      @id @default(autoincrement())
   category  String
   value     String
+  moodScore Int?
   trigger   String?
   notes     String?
   createdAt DateTime @default(now())
