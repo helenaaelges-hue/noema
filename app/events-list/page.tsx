@@ -7,6 +7,7 @@ type Event = {
     id: number;
     category: string;
     value: string;
+    moodScore: number | null;
     trigger: string | null;
     notes: string | null;
     createdAt: string;
@@ -24,6 +25,29 @@ export default function EventsListPage() {
 
         loadEvents();
     }, []);
+
+    async function deleteEvent(id: number) {
+        const confirmed = confirm(
+            "Are you sure you want to delete this event?"
+        );
+
+        if (!confirmed) return;
+
+        const response = await fetch(
+            `/api/events/${id}`,
+            {
+                method: "DELETE",
+            }
+        );
+
+        if (response.ok) {
+            setEvents(
+                events.filter(
+                    (event) => event.id !== id
+                )
+            );
+        }
+    }
 
     return (
         <main className="p-8 max-w-4xl mx-auto">
@@ -52,6 +76,13 @@ export default function EventsListPage() {
                                 <strong>Value:</strong> {event.value}
                             </p>
 
+                        {event.moodScore && (
+                            <p>
+                                <strong>Mood Score:</strong>{" "}
+                                {event.moodScore}/10
+                            </p>
+                        )}
+
                             <p>
                                 <strong>Trigger:</strong> {event.trigger || "-"}
                             </p>
@@ -64,6 +95,13 @@ export default function EventsListPage() {
                                 <strong>Date:</strong>{" "}
                                 {new Date(event.createdAt).toLocaleString()}
                             </p>
+
+                            <button
+                                onClick={() => deleteEvent(event.id)}
+                                className="mt-4 border rounded px-3 py-1"
+                            >
+                                Delete
+                            </button>
                         </div>
                     ))}
                 </div>

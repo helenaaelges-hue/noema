@@ -16,3 +16,13 @@ model Event {
   notes     String?
   createdAt DateTime @default(now())
 }
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+}
+
+model Trigger {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+}
