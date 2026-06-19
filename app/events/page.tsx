@@ -1,10 +1,13 @@
 "use client";
 
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Link from "next/link";
 
 export default function EventsPage() {
     const [category, setCategory] = useState("");
+    const [categories, setCategories] = useState<
+        { id: number; name: string }[]
+    >([]);
     const [value, setValue] = useState("");
     const [moodScore, setMoodScore] = useState("");
     const [trigger, setTrigger] = useState("");
@@ -41,6 +44,20 @@ export default function EventsPage() {
         }
     }
 
+    useEffect(() => {
+        async function loadCategories() {
+            const response = await fetch(
+                "/api/categories"
+            );
+
+            const data = await response.json();
+            
+            setCategories(data);
+        }
+
+        loadCategories();
+    }, []);
+
     return (
         <main className="p-8 max-w-xl mx-auto">
            <Link href="/">&larr; Home</Link>
@@ -57,31 +74,19 @@ export default function EventsPage() {
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                     >
-                            <option value="">Select category...</option>
-                            <option value="Mood">Mood</option>
-                            <option value="Sleep">Sleep</option>
-                            <option value="Exercise">Exercise</option>
-                            <option value="Medication">Medication</option>
-                            <option value="Work">Work</option>
-                            <option value="Social">Social</option>
+                        <option value="">
+                            Select Category
+                        </option>
+
+                        {categories.map((category) => (
+                            <option
+                                key={category.id}
+                                value={category.name}
+                            >
+                                {category.name}
+                            </option>
+                        ))}
                     </select>
-
-                    <h2 className="text-xl font-semibold mt-8">
-                        Custom Categories
-                    </h2>
-
-                    <input
-                        type="text"
-                        className="border p-2 w-full"
-                        placeholder="Create a new category"
-                    />
-
-                    <button
-                        type="button"
-                        className="border rounded p-2 mt-2"
-                    >
-                        Add Category
-                    </button>
                 </div>
 
                 <div>
