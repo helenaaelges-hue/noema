@@ -2,16 +2,86 @@
 
 import {useEffect, useState} from "react";
 import Link from "next/link";
+import { Trigger } from ".prisma/client/wasm";
 
 export default function EventsPage() {
     const [category, setCategory] = useState("");
     const [categories, setCategories] = useState<
         { id: number; name: string }[]
     >([]);
+    const [newCategory, setNewCategory] = useState("");
+    const [showCategoryForm, setShowCategoryForm] = useState(false);
     const [value, setValue] = useState("");
     const [moodScore, setMoodScore] = useState("");
+    const [triggers, setTriggers] = useState<
+        Trigger[]
+    >([]);
     const [trigger, setTrigger] = useState("");
+    const [newTrigger, setNewTrigger] = useState("");
+    const [showTriggerForm, setShowTriggerForm] = useState(false);
     const [notes, setNotes] = useState("");
+
+    async function addCategory() {
+        if (!newCategory.trim()) return;
+
+        const response = await fetch(
+            "/api/categories",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+                body: JSON.stringify({
+                    name: newCategory,
+                }),
+            }
+        );
+
+        if (response.ok) {
+            const created =
+                await response.json();
+
+            setCategories([
+                ...categories,
+                created,
+            ]);
+
+            setNewCategory("");
+            setShowCategoryForm(false);
+        }
+    }
+
+    async function addTrigger() {
+        if (!newTrigger.trim()) return;
+
+        const response = await fetch(
+            "/api/triggers",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+                body: JSON.stringify({
+                    name: newTrigger,
+                }),
+            }
+        );
+
+        if (response.ok) {
+            const created =
+                await response.json();
+
+            setTriggers([
+                ...triggers,
+                created,
+            ]);
+
+            setNewTrigger("");
+            setShowTriggerForm(false);
+        }
+    }
 
     async function saveEvent() {
 
@@ -56,7 +126,20 @@ export default function EventsPage() {
         }
 
         loadCategories();
+
+            async function loadTriggers() {
+                const response = await fetch(
+                    "/api/triggers"
+                );
+
+                const data = await response.json();
+
+                setTriggers(data);
+            }
+
+            loadTriggers();
     }, []);
+
 
     return (
         <main className="p-8 max-w-xl mx-auto">
@@ -87,6 +170,42 @@ export default function EventsPage() {
                             </option>
                         ))}
                     </select>
+
+                    <button
+                        type="button"
+                        className="mt-2 text-sm underline"
+                        onClick={() =>
+                            setShowCategoryForm(
+                                !showCategoryForm
+                            )
+                        }
+                    >
+                        + New Category
+                    </button>
+
+                    {showCategoryForm && (
+                        <div className="mt-3">
+                            <input
+                                type="text"
+                                className="border p-2 w-full"
+                                placeholder="Category name"
+                                value={newCategory}
+                                onChange={(e) =>
+                                    setNewCategory(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                            <button
+                                type="button"
+                                onClick={addCategory}
+                                className="border rounded p-2 mt-2"
+                            >
+                                Save Category
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div>
@@ -120,14 +239,52 @@ export default function EventsPage() {
                     <label>Trigger</label>
 
                     <select className="border p-2 w-full" value={trigger} onChange={(e) => setTrigger(e.target.value)}>
-                        <option value="">Select trigger...</option>
-                        <option value="Partner Conflict">Partner Conflict</option>
-                        <option value="Work Stress">Work Stress</option>
-                        <option value="Poor Sleep">Poor Sleep</option>
-                        <option value="Exercise">Exercise</option>
-                        <option value="Medication">Medication</option>
-                        <option value="Other">Other</option>
+                        <option value="">Select trigger</option>
+                       {triggers.map((trigger: { id: number; name: string }) => (
+                            <option
+                                key={trigger.id}
+                                value={trigger.name}
+                            >
+                                {trigger.name}
+                            </option>
+                        ))}
                     </select>
+
+                    <button
+                        type="button"
+                        className="mt-2 text-sm underline"
+                        onClick={() =>
+                            setShowTriggerForm(
+                                !showTriggerForm
+                            )
+                        }
+                    >
+                        + New Trigger
+                    </button>
+
+                    {showTriggerForm && (
+                        <div className="mt-3">
+                            <input
+                                type="text"
+                                className="border p-2 w-full"
+                                placeholder="Trigger name"
+                                value={newTrigger}
+                                onChange={(e) =>
+                                    setNewTrigger(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                            <button
+                                type="button"
+                                onClick={addTrigger}
+                                className="border rounded p-2 mt-2"
+                            >
+                                Save Trigger
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div>
