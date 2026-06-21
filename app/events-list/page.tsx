@@ -10,6 +10,7 @@ type Event = {
     moodScore: number | null;
     trigger: string | null;
     notes: string | null;
+    eventDate: string;
     createdAt: string;
 };
 
@@ -64,6 +65,7 @@ export default function EventsListPage() {
             ) : (
                 <div className="space-y-4">
                     {events.map((event) => (
+
                         <div 
                             key={event.id}
                             className="border rounded p-4"
@@ -92,8 +94,8 @@ export default function EventsListPage() {
                             </p>
 
                             <p>
-                                <strong>Date:</strong>{" "}
-                                {new Date(event.createdAt).toLocaleString()}
+                                <strong>Event Date:</strong>{" "}
+                                {new Date(event.eventDate).toLocaleString()};
                             </p>
 
                             <button

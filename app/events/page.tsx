@@ -20,6 +20,9 @@ export default function EventsPage() {
     const [newTrigger, setNewTrigger] = useState("");
     const [showTriggerForm, setShowTriggerForm] = useState(false);
     const [notes, setNotes] = useState("");
+    const [eventDate, setEventDate] = useState(
+        new Date().toISOString().slice(0, 16)
+    );
 
     async function addCategory() {
         if (!newCategory.trim()) return;
@@ -96,6 +99,7 @@ export default function EventsPage() {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
+                eventDate,
                 category,
                 value,
                 moodScore,
@@ -111,6 +115,11 @@ export default function EventsPage() {
             setMoodScore("");
             setTrigger("");
             setNotes("");
+            setEventDate(
+                new Date()
+                    .toISOString()
+                    .slice(0, 16)   
+            )
         }
     }
 
@@ -149,6 +158,19 @@ export default function EventsPage() {
 
             <form className="flex flex-col gap-4">
 
+                <div>
+                    <label>Date & Time</label>
+
+                    <input
+                        type="datetime-local"
+                        className="border p-2 w-full"
+                        value={eventDate}
+                        onChange={(e) =>
+                            setEventDate(e.target.value)
+                        }
+                    />
+                </div>
+                
                 <div>
                     <label>Category</label>
 
