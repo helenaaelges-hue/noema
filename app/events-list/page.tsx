@@ -95,7 +95,8 @@ export default function EventsListPage() {
 
                             <p>
                                 <strong>Event Date:</strong>{" "}
-                                {new Date(event.eventDate).toLocaleString()};
+                                {new Date(event.eventDate)
+                                    .toLocaleString("de-DE")};
                             </p>
 
                             <button

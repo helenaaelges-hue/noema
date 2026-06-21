@@ -20,9 +20,16 @@ export default function EventsPage() {
     const [newTrigger, setNewTrigger] = useState("");
     const [showTriggerForm, setShowTriggerForm] = useState(false);
     const [notes, setNotes] = useState("");
-    const [eventDate, setEventDate] = useState(
-        new Date().toISOString().slice(0, 16)
-    );
+    const now = new Date();
+    const localDateTime =
+        new Date(
+            now.getTime() -
+            now.getTimezoneOffset() * 60000
+        )
+            .toISOString()
+            .slice(0, 16);
+    
+    const [eventDate, setEventDate] = useState(localDateTime);
 
     async function addCategory() {
         if (!newCategory.trim()) return;
@@ -115,11 +122,15 @@ export default function EventsPage() {
             setMoodScore("");
             setTrigger("");
             setNotes("");
+            const now = new Date();
             setEventDate(
-                new Date()
-                    .toISOString()
-                    .slice(0, 16)   
-            )
+                new Date(
+                    now.getTime() -
+                    now.getTimezoneOffset() * 60000
+                )
+                .toISOString()
+                .slice(0, 16)   
+            );
         }
     }
 
