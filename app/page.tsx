@@ -22,7 +22,7 @@ export default function Home() {
           href="/events-list"
           className="border px-4 py-2 rounded"
         >
-          View Events
+          Event History
         </Link>
 
         <Link

@@ -99,6 +99,13 @@ export default function EventsListPage() {
                                     .toLocaleString("de-DE")};
                             </p>
 
+                            <Link
+                                href={`/events/edit/${event.id}`}
+                                className="border rounded px-3 py-2 mr-2"
+                            >
+                                Edit
+                            </Link>
+
                             <button
                                 onClick={() => deleteEvent(event.id)}
                                 className="mt-4 border rounded px-3 py-1"
