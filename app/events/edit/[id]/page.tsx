@@ -13,6 +13,13 @@ export default function EditEventPage() {
     const [trigger, setTrigger] = useState("");
     const [notes, setNotes] = useState("");
     const [eventDate, setEventDate] = useState("");
+    const [categories, setCategories] = useState<
+        { id: number; name: string }[]
+    >([]);
+
+    const [triggers, setTriggers] = useState<
+        { id: number; name: string } []
+    >([]);
 
     async function updateEvent() {
         await fetch(
@@ -63,19 +70,48 @@ export default function EditEventPage() {
                     .toISOString()
                     .slice(0, 16)
             );
+
+            setLoading(false);
         }
 
         loadEvent();
+
+        async function loadCategories() {
+            const response =
+                await fetch("/api/categories");
+
+            const data =
+                await response.json();
+
+            setCategories(data);
+        }
+
+        async function loadTriggers() {
+            const response =
+                await fetch("/api/triggers");
+
+            const data =
+                await response.json();
+
+            setTriggers(data);
+        }
+
+        loadCategories();
+        loadTriggers();
+
     }, [params.id]);
 
-    if (!category) {
+    const [loading, setLoading] =
+        useState(true);
+
+    if (loading) {
         return <p>Loading...</p>;
     }
 
     return (
         <main className="p-8 max-w-xl mx-auto">
             <Link href="/events-list">
-                &larr; Back to Events
+                &larr; Back to Event History
             </Link>
 
             <h1 className="text-3xl font-bold mt-4 mb-6">
@@ -84,14 +120,25 @@ export default function EditEventPage() {
 
             <div className="space-y-4">
 
-                <input
+                <label>Category</label>
+                <select
                     className="border p-2 w-full"
                     value={category}
                     onChange={(e) =>
                         setCategory(e.target.value)
                     }
-                />
+                >
+                    {categories.map((category) => (
+                        <option
+                            key={category.id}
+                            value={category.name}
+                        >
+                            {category.name}
+                        </option>
+                    ))}
+                </select>
 
+                <label>Value</label>
                 <input
                     className="border p-2 w-full"
                     value={value}
@@ -100,6 +147,7 @@ export default function EditEventPage() {
                     }
                 />
 
+                <label>Mood Score</label>
                 <input
                     type="number"
                     className="border p-2 w-full"
@@ -109,14 +157,29 @@ export default function EditEventPage() {
                     }
                 />
 
-                <input
+                <label>Trigger</label>
+                <select
                     className="border p-2 w-full"
                     value={trigger}
                     onChange={(e) =>
                         setTrigger(e.target.value)
                     }
-                />
+                >
+                    <option value="">
+                        No Trigger
+                    </option>
 
+                    {triggers.map((trigger) => (
+                        <option
+                            key={trigger.id}
+                            value={trigger.name}
+                        >
+                            {trigger.name}
+                        </option>
+                    ))}
+                </select>
+
+                <label>Notes</label>
                 <textarea
                     className="border p-2 w-full"
                     value={notes}
@@ -125,6 +188,7 @@ export default function EditEventPage() {
                     }
                 />
 
+                <label>Event Date</label>
                 <input
                     type="datetime-local"
                     className="border p-2 w-full"
