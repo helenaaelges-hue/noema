@@ -51,7 +51,8 @@ export default function AnalyticsPage() {
                         event.moodScore !== null
                 )
                 .map((event: any, index: number) => ({
-                    day: index + 1,
+                    day: new Date(event.eventDate)
+                        .toLocaleDateString(),
                     mood: event.moodScore,
                 }));
 
@@ -136,6 +137,37 @@ export default function AnalyticsPage() {
         (a, b) => b.average - a.average
     );
 
+    const bestTrigger =
+        triggerMoodAverages.length
+            ? triggerMoodAverages[0]
+            : null;
+
+    const worstTrigger =
+        triggerMoodAverages.length
+            ? triggerMoodAverages[
+                triggerMoodAverages.length - 1
+            ]
+            : null;
+
+    const categoryStatistics = Object.entries(
+        events.reduce(
+            (
+                acc: Record<string, number>,
+                event: any
+            ) => {
+                acc[event.category] =
+                    (acc[event.category] || 0) + 1;
+
+                return acc;
+            },
+            {}
+        )
+    ).sort((a, b) => b[1] - a[1]);
+
+    const latestMood = moodEvents.length
+        ? moodEvents[moodEvents.length - 1]
+        : null;
+
     return (
         <main className="p-8 max-w-4xl mx-auto">
             <Link href="/">
@@ -169,6 +201,33 @@ export default function AnalyticsPage() {
                     <p className="text-3xl">
                         {averageMood}
                     </p>
+                </div>
+
+                <div className="border rounded-lg p-6 mb-8">
+                    <h2 className="text-xl font-semibold mb-4">
+                        Latest Mood
+                    </h2>
+
+                    {latestMood ? (
+                        <>
+                            <p>
+                                <strong>Value:</strong> {latestMood.value}
+                            </p>
+
+                            <p>
+                                <strong>Score:</strong> {latestMood.moodScore}
+                            </p>
+
+                            <p>
+                                <strong>Date:</strong>{" "}
+                                {new Date(
+                                    latestMood.eventDate
+                                ).toLocaleString()}
+                            </p>
+                        </>
+                    ) : (
+                        <p>No mood entries yet.</p>
+                    )}
                 </div>
             
                 <div className="border rounded-lg p-4">
@@ -227,6 +286,57 @@ export default function AnalyticsPage() {
                         </div>
                     ))
                 )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="border rounded-lg p-4">
+                    <h3 className="font-semibold">
+                        Best Trigger
+                    </h3>
+
+                    {bestTrigger ? (
+                        <>
+                            <p>{bestTrigger.trigger}</p>
+
+                            <p>{bestTrigger.average.toFixed(1)}</p>
+                        </>
+                    ) : (
+                        <p>No data</p>
+                    )}
+                </div>
+
+                <div className="border rounded-lg p-4">
+                    <h3 className="font-semibold">
+                        Lowest Mood Trigger
+                    </h3>
+
+                    {worstTrigger ? (
+                        <>
+                            <p>{worstTrigger.trigger}</p>
+
+                            <p>{worstTrigger.average.toFixed(1)}</p>
+                        </>
+                    ) : (
+                        <p>No data</p>
+                    )}
+                </div>
+            </div>
+
+            <div className="border rounded-lg p-6 mb-8">
+                <h2 className="text-xl font-semibold mb-4">
+                    Category Statistics
+                </h2>
+
+                {categoryStatistics.map(([category, count]) => (
+                    <div
+                        key={category}
+                        className="flex justify-between mb-2"
+                    >
+                        <span>{category}</span>
+
+                        <span>{count}</span>
+                    </div>
+                ))}
             </div>
 
             <div className="border rounded-lg p-6">
