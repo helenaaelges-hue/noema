@@ -95,6 +95,47 @@ export default function AnalyticsPage() {
                 {}
             );
 
+    const triggerMoodAverages = Object.entries(
+        events.reduce(
+            (
+                acc: Record<
+                    string,
+                    { total: number; count: number }
+                >,
+                event: any
+            ) => {
+                if (
+                    event.category !== "Mood" ||
+                    event.moodScore === null ||
+                    !event.trigger
+                ) {
+                    return acc;
+                }
+
+                if (!acc[event.trigger]) {
+                    acc[event.trigger] = {
+                        total: 0,
+                        count: 0,
+                    };
+                }
+
+                acc[event.trigger].total += event.moodScore;
+                acc[event.trigger].count++;
+
+                return acc;
+            },
+            {}
+        )
+    ).map(([trigger, values]) => ({
+        trigger,
+        average:
+            values.total / values.count,
+    }));
+
+    triggerMoodAverages.sort(
+        (a, b) => b.average - a.average
+    );
+
     return (
         <main className="p-8 max-w-4xl mx-auto">
             <Link href="/">
@@ -160,6 +201,32 @@ export default function AnalyticsPage() {
                             {name}: {count}
                         </p>
                 ))}
+            </div>
+
+            <div className="border rounded-lg p-6 mb-8">
+                <h2 className="text-xl font-semibold mb-4">
+                    Trigger Insights
+                </h2>
+
+                {triggerMoodAverages.length === 0 ? (
+                    <p>No mood data yet.</p>
+                ) : (
+                    triggerMoodAverages.map((item) => (
+                        <div
+                            key={item.trigger}
+                            className="mb-3"
+                        >
+                            <strong>
+                                {item.trigger}
+                            </strong>
+
+                            <p>
+                                Average mood:{" "}
+                                {item.average.toFixed(1)}
+                            </p>
+                        </div>
+                    ))
+                )}
             </div>
 
             <div className="border rounded-lg p-6">
