@@ -16,6 +16,7 @@ type Event = {
 
 export default function EventsListPage() {
     const [events, setEvents] = useState<Event[]>([]);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         async function loadEvents() {
@@ -50,6 +51,21 @@ export default function EventsListPage() {
         }
     }
 
+    const filteredEvents = events.filter((event) => {
+        const query = search.toLowerCase();
+
+        return (
+            event.category.toLowerCase().includes(query) ||
+            event.value.toLowerCase().includes(query) ||
+            (event.trigger ?? "")
+                .toLowerCase()
+                .includes(query) ||
+            (event.notes ?? "")
+                .toLowerCase()
+                .includes(query)
+        );
+    });
+
     return (
         <main className="p-8 max-w-4xl mx-auto">
             <Link href="/">
@@ -60,11 +76,19 @@ export default function EventsListPage() {
                 Event History
             </h1>
 
-            {events.length === 0 ? (
+            <input
+                type="text"
+                placeholder="Search events..."
+                className="border rounded p-2 w-full mb-6"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+            />
+
+            {filteredEvents.length === 0 ? (
                 <p>No events found.</p>
             ) : (
                 <div className="space-y-4">
-                    {events.map((event) => (
+                    {filteredEvents.map((event) => (
 
                         <div 
                             key={event.id}

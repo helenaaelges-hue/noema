@@ -2,7 +2,8 @@
 
 import {useEffect, useState} from "react";
 import Link from "next/link";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { calculateAverageMood, calculateCategoryStatistics } from "@/src/lib/analytics"
 
 export default function AnalyticsPage() {
     const [moodData, setMoodData] = useState<any[]>([]);
@@ -71,30 +72,7 @@ export default function AnalyticsPage() {
         );
 
     const averageMood =
-        moodEvents.length > 0
-            ? (
-                moodEvents.reduce(
-                    (sum: number, event: any) =>
-                        sum + event.moodScore,
-                    0
-                ) /
-                moodEvents.length
-            ).toFixed(1)
-            : "-";
-
-    const categoryCounts: Record<string, number> =
-            events.reduce(
-                (
-                    acc: Record<string, number>,
-                    event: any
-                ) => {
-                    acc[event.category] =
-                        (acc[event.category] || 0) + 1;
-
-                    return acc;
-                },
-                {}
-            );
+        calculateAverageMood(events);
 
     const triggerMoodAverages = Object.entries(
         events.reduce(
@@ -149,24 +127,22 @@ export default function AnalyticsPage() {
             ]
             : null;
 
-    const categoryStatistics = Object.entries(
-        events.reduce(
-            (
-                acc: Record<string, number>,
-                event: any
-            ) => {
-                acc[event.category] =
-                    (acc[event.category] || 0) + 1;
-
-                return acc;
-            },
-            {}
-        )
-    ).sort((a, b) => b[1] - a[1]);
+    const categoryStatistics = calculateCategoryStatistics(events);
 
     const latestMood = moodEvents.length
         ? moodEvents[moodEvents.length - 1]
         : null;
+
+    const moodDistribution = Array.from(
+        {length: 10},
+        (_, index) => ({
+            score: index +1,
+            count: moodEvents.filter(
+                (event) =>
+                    event.moodScore === index + 1
+            ).length,
+        })
+    );
 
     return (
         <main className="p-8 max-w-4xl mx-auto">
@@ -245,21 +221,6 @@ export default function AnalyticsPage() {
 
                     <p>{topTrigger}</p>
                 </div>
-            </div>
-
-
-            <div className="border rounded-lg p-6 mb-8">
-
-                <h2 className="text-xl font-semibold mb-4">
-                    Categories
-                 </h2>
-
-                {Object.entries(categoryCounts)
-                    .map(([name, count]) => (
-                        <p key={name}>
-                            {name}: {count}
-                        </p>
-                ))}
             </div>
 
             <div className="border rounded-lg p-6 mb-8">
@@ -355,6 +316,25 @@ export default function AnalyticsPage() {
                     <Tooltip />
                     <Line type="monotone" dataKey="mood" />
                 </LineChart>
+            </div>
+
+            <div className="border rounded-lg p-6 mt-8">
+                <h2 className="text-xl font-semibold mb-4">
+                    Mood Distribution
+                </h2>
+
+                <BarChart
+                    width={700}
+                    height={300}
+                    data={moodDistribution}
+                >
+
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="score" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" />
+                </BarChart>
             </div>
         </main>
     );
