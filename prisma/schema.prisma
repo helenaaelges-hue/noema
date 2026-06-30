@@ -14,7 +14,7 @@ model Event {
   value     String
   moodScore Int?
 
-  trigger   String?
+  triggers  EventTrigger[]
   notes     String?
 
   eventDate DateTime
@@ -29,4 +29,15 @@ model Category {
 model Trigger {
   id     Int     @id @default(autoincrement())
   name   String  @unique
+  events EventTrigger[]
+}
+
+model EventTrigger {
+  eventId   Int
+  triggerId Int
+
+  event     Event   @relation(fields: [eventId], references: [id])
+  trigger   Trigger @relation(fields: [triggerId], references: [id])
+
+  @@id([eventId, triggerId])
 }

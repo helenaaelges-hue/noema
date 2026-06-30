@@ -43,3 +43,53 @@ export function calculateCategoryStatistics(
             Number(b[1]) - Number(a[1])
     );
 }
+
+export function calculateTriggerCorrelations(events: any[]) {
+
+    const moodEvents = events.filter(
+        (event) =>
+            event.category === "Mood" &&
+            event.moodScore !== null &&
+            event.trigger
+    );
+
+    const overallAverage =
+        calculateAverageMood(events);
+
+    const triggerMap: Record<
+        string,
+        number[]
+    > = {};
+
+    moodEvents.forEach((event) => {
+
+        if (!triggerMap[event.trigger]) {
+            triggerMap[event.trigger] = [];
+        }
+
+        triggerMap[event.trigger].push(
+            event.moodScore
+        );
+    });
+
+    return Object.entries(triggerMap).map(
+        ([trigger, scores]) => {
+
+            const average =
+                scores.reduce(
+                    (sum, score) => sum + score,
+                    0
+                ) / scores.length;
+
+            return {
+                trigger,
+                average:
+                    Number(average.toFixed(1)),
+                difference:
+                    Number((average - overallAverage).toFixed(1)),
+                entries:
+                    scores.length,
+            };
+        }
+    ).sort((a, b) => b.difference - a.difference);
+}

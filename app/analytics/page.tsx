@@ -3,7 +3,7 @@
 import {useEffect, useState} from "react";
 import Link from "next/link";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { calculateAverageMood, calculateCategoryStatistics } from "@/src/lib/analytics"
+import { calculateAverageMood, calculateCategoryStatistics, calculateTriggerCorrelations } from "@/src/lib/analytics"
 
 export default function AnalyticsPage() {
     const [moodData, setMoodData] = useState<any[]>([]);
@@ -74,58 +74,14 @@ export default function AnalyticsPage() {
     const averageMood =
         calculateAverageMood(events);
 
-    const triggerMoodAverages = Object.entries(
-        events.reduce(
-            (
-                acc: Record<
-                    string,
-                    { total: number; count: number }
-                >,
-                event: any
-            ) => {
-                if (
-                    event.category !== "Mood" ||
-                    event.moodScore === null ||
-                    !event.trigger
-                ) {
-                    return acc;
-                }
-
-                if (!acc[event.trigger]) {
-                    acc[event.trigger] = {
-                        total: 0,
-                        count: 0,
-                    };
-                }
-
-                acc[event.trigger].total += event.moodScore;
-                acc[event.trigger].count++;
-
-                return acc;
-            },
-            {}
-        )
-    ).map(([trigger, values]) => ({
-        trigger,
-        average:
-            values.total / values.count,
-    }));
-
-    triggerMoodAverages.sort(
-        (a, b) => b.average - a.average
-    );
+    const triggerCorrelations =
+        calculateTriggerCorrelations(events);
 
     const bestTrigger =
-        triggerMoodAverages.length
-            ? triggerMoodAverages[0]
-            : null;
-
+        triggerCorrelations[0] ?? null;
+    
     const worstTrigger =
-        triggerMoodAverages.length
-            ? triggerMoodAverages[
-                triggerMoodAverages.length - 1
-            ]
-            : null;
+        triggerCorrelations[triggerCorrelations.length - 1] ?? null;
 
     const categoryStatistics = calculateCategoryStatistics(events);
 
@@ -228,10 +184,10 @@ export default function AnalyticsPage() {
                     Trigger Insights
                 </h2>
 
-                {triggerMoodAverages.length === 0 ? (
+                {triggerCorrelations.length === 0 ? (
                     <p>No mood data yet.</p>
                 ) : (
-                    triggerMoodAverages.map((item) => (
+                    triggerCorrelations.map((item) => (
                         <div
                             key={item.trigger}
                             className="mb-3"
@@ -242,7 +198,19 @@ export default function AnalyticsPage() {
 
                             <p>
                                 Average mood:{" "}
-                                {item.average.toFixed(1)}
+                                {item.average}
+                            </p>
+
+                            <p>
+                                Difference from average:
+                                {" "}
+                                {item.difference > 0 ? "+" : ""}
+                                {item.difference}
+                            </p>
+
+                            <p>
+                                Entries:
+                                {item.entries}
                             </p>
                         </div>
                     ))
@@ -257,9 +225,18 @@ export default function AnalyticsPage() {
 
                     {bestTrigger ? (
                         <>
-                            <p>{bestTrigger.trigger}</p>
+                            <p className="font-semibold">
+                                {bestTrigger.trigger}
+                            </p>
 
-                            <p>{bestTrigger.average.toFixed(1)}</p>
+                            <p>
+                                {bestTrigger.difference > 0 ? "+" : ""}
+                                {bestTrigger.difference} above average
+                            </p>
+
+                            <p>
+                                Average Mood: {bestTrigger.average}
+                            </p>
                         </>
                     ) : (
                         <p>No data</p>
@@ -273,9 +250,18 @@ export default function AnalyticsPage() {
 
                     {worstTrigger ? (
                         <>
-                            <p>{worstTrigger.trigger}</p>
+                            <p className="font-semibold">
+                                {worstTrigger.trigger}
+                            </p>
 
-                            <p>{worstTrigger.average.toFixed(1)}</p>
+                            <p>
+                                {worstTrigger.difference}
+                                {" "}below average
+                            </p>
+
+                            <p>
+                                Average Mood: {worstTrigger.average}
+                            </p>
                         </>
                     ) : (
                         <p>No data</p>
