@@ -13,7 +13,6 @@ export async function POST(request: Request) {
                 ? Number(body.moodScore)
                 : null,
 
-            trigger: body.trigger,
             notes: body.notes,
 
             eventDate: body.eventDate
@@ -21,14 +20,36 @@ export async function POST(request: Request) {
                 : new Date(),
         },
     });
+
+    if (
+        body.triggerIds &&
+        body.triggerIds.length > 0
+    ) {
+        await prisma.eventTrigger.createMany({
+            data: body.triggerIds.map(
+                (triggerId: number) => ({
+                    eventId: event.id,
+                    triggerId,
+                })
+            ),
+        });
+    }
     
     return NextResponse.json(event);
 }
 
 export async function GET() {
     const events = await prisma.event.findMany({
+        include: {
+            triggers: {
+                include: {
+                    trigger: true,
+                },
+            },
+        },
+        
         orderBy: {
-            createdAt: "desc",
+            eventDate: "desc",
         },
     });
 

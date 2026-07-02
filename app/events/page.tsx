@@ -2,7 +2,6 @@
 
 import {useEffect, useState} from "react";
 import Link from "next/link";
-import { Trigger } from ".prisma/client/wasm";
 
 export default function EventsPage() {
     const [category, setCategory] = useState("");
@@ -14,9 +13,9 @@ export default function EventsPage() {
     const [value, setValue] = useState("");
     const [moodScore, setMoodScore] = useState("");
     const [triggers, setTriggers] = useState<
-        Trigger[]
+        {id: number, name: string}[]
     >([]);
-    const [trigger, setTrigger] = useState("");
+    const [selectedTriggers, setSelectedTriggers] = useState<number[]>([]);
     const [newTrigger, setNewTrigger] = useState("");
     const [showTriggerForm, setShowTriggerForm] = useState(false);
     const [notes, setNotes] = useState("");
@@ -83,10 +82,12 @@ export default function EventsPage() {
             const created =
                 await response.json();
 
-            setTriggers([
-                ...triggers,
-                created,
-            ]);
+            setTriggers(
+                [...triggers, created].sort(
+                    (a, b) =>
+                        a.name.localeCompare(b.name)
+                )
+            );
 
             setNewTrigger("");
             setShowTriggerForm(false);
@@ -110,7 +111,7 @@ export default function EventsPage() {
                 category,
                 value,
                 moodScore,
-                trigger,
+                triggerIds: selectedTriggers,
                 notes,
             }),
         });
@@ -120,7 +121,7 @@ export default function EventsPage() {
             setCategory("");
             setValue("");
             setMoodScore("");
-            setTrigger("");
+            setSelectedTriggers([]);
             setNotes("");
             const now = new Date();
             setEventDate(
@@ -269,27 +270,42 @@ export default function EventsPage() {
                 )}
 
                 <div>
-                    <label>Trigger</label>
+                    <label className="font-medium">
+                        Triggers
+                    </label>
 
-                    <select className="border p-2 w-full" value={trigger} onChange={(e) => setTrigger(e.target.value)}>
-                        <option value="">Select trigger</option>
-                       {triggers.map((trigger: { id: number; name: string }) => (
-                            <option
+                    <div className="space-y-2 mt-2">
+                        {triggers.map((trigger) => (
+                            <label
                                 key={trigger.id}
-                                value={trigger.name}
+                                className="flex items-center gap-2"
                             >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedTriggers.includes(trigger.id)}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setSelectedTriggers([
+                                                ...selectedTriggers,
+                                                trigger.id,
+                                            ]);
+                                        } else {
+                                            setSelectedTriggers(
+                                                selectedTriggers.filter((id) => id !== trigger.id)
+                                            );
+                                        }
+                                    }}
+                                />
                                 {trigger.name}
-                            </option>
+                            </label>
                         ))}
-                    </select>
+                    </div>
 
                     <button
                         type="button"
                         className="mt-2 text-sm underline"
                         onClick={() =>
-                            setShowTriggerForm(
-                                !showTriggerForm
-                            )
+                            setShowTriggerForm(!showTriggerForm)
                         }
                     >
                         + New Trigger
@@ -297,25 +313,23 @@ export default function EventsPage() {
 
                     {showTriggerForm && (
                         <div className="mt-3">
+
                             <input
                                 type="text"
                                 className="border p-2 w-full"
                                 placeholder="Trigger name"
                                 value={newTrigger}
-                                onChange={(e) =>
-                                    setNewTrigger(
-                                        e.target.value
-                                    )
-                                }
+                                onChange={(e) => setNewTrigger(e.target.value)}
                             />
 
                             <button
                                 type="button"
-                                onClick={addTrigger}
                                 className="border rounded p-2 mt-2"
+                                onClick={addTrigger}
                             >
                                 Save Trigger
                             </button>
+
                         </div>
                     )}
                 </div>
