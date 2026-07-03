@@ -31,6 +31,13 @@ export async function GET(
             where: {
                 id: Number(id),
             },
+            include: {
+                triggers: {
+                    include: {
+                        trigger: true,
+                    },
+                },
+            },
         });
 
     return NextResponse.json(event);
@@ -65,9 +72,6 @@ export async function PUT(
                         )
                         : null,
 
-                trigger:
-                    body.trigger,
-
                 notes:
                     body.notes,
 
@@ -77,6 +81,25 @@ export async function PUT(
                     ),
             },
         });
+
+        await prisma.eventTrigger.deleteMany({
+            where: {
+                eventId: Number(id),
+            },
+        });
+
+        if (body.triggerIds?.length > 0) {
+            await prisma.eventTrigger.createMany({
+                data:
+                    body.triggerIds.map(
+                        (triggerId: number) => ({
+                            eventId:
+                                Number(id),
+                            triggerId,
+                        })
+                    ),
+            });
+        }
 
     return NextResponse.json(event);
 }

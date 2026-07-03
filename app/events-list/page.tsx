@@ -8,7 +8,12 @@ type Event = {
     category: string;
     value: string;
     moodScore: number | null;
-    trigger: string | null;
+    triggers: {
+        trigger: {
+            id: number;
+            name: string;
+        };
+    }[];
     notes: string | null;
     eventDate: string;
     createdAt: string;
@@ -57,9 +62,10 @@ export default function EventsListPage() {
         return (
             event.category.toLowerCase().includes(query) ||
             event.value.toLowerCase().includes(query) ||
-            (event.trigger ?? "")
-                .toLowerCase()
-                .includes(query) ||
+            event.triggers.some((t) =>
+                t.trigger.name
+                    .toLowerCase()
+                    .includes(query)) ||
             (event.notes ?? "")
                 .toLowerCase()
                 .includes(query)
@@ -102,7 +108,7 @@ export default function EventsListPage() {
                                 <strong>Value:</strong> {event.value}
                             </p>
 
-                        {event.moodScore && (
+                        {event.moodScore !== null && (
                             <p>
                                 <strong>Mood Score:</strong>{" "}
                                 {event.moodScore}/10
@@ -110,7 +116,12 @@ export default function EventsListPage() {
                         )}
 
                             <p>
-                                <strong>Trigger:</strong> {event.trigger || "-"}
+                                <strong>Triggers:</strong>{" "}
+                                    {event.triggers.length > 0
+                                        ? event.triggers
+                                            .map((t) => t.trigger.name)
+                                            .join(", ")
+                                        : "-"}
                             </p>
 
                             <p>
@@ -120,7 +131,7 @@ export default function EventsListPage() {
                             <p>
                                 <strong>Event Date:</strong>{" "}
                                 {new Date(event.eventDate)
-                                    .toLocaleString("de-DE")};
+                                    .toLocaleString("de-DE")}
                             </p>
 
                             <Link

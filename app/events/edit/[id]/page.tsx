@@ -10,7 +10,6 @@ export default function EditEventPage() {
     const [category, setCategory] = useState("");
     const [value, setValue] = useState("");
     const [moodScore, setMoodScore] = useState("");
-    const [trigger, setTrigger] = useState("");
     const [notes, setNotes] = useState("");
     const [eventDate, setEventDate] = useState("");
     const [categories, setCategories] = useState<
@@ -20,6 +19,8 @@ export default function EditEventPage() {
     const [triggers, setTriggers] = useState<
         { id: number; name: string } []
     >([]);
+    const [selectedTriggers, setSelectedTriggers] =
+        useState<number[]>([]);
 
     async function updateEvent() {
         await fetch(
@@ -36,7 +37,7 @@ export default function EditEventPage() {
                     category,
                     value,
                     moodScore,
-                    trigger,
+                    triggerIds: selectedTriggers,
                     notes,
                     eventDate,
                 }),
@@ -62,7 +63,11 @@ export default function EditEventPage() {
                 data.moodScore?.toString() || ""
             );
 
-            setTrigger(data.trigger || "");
+            setSelectedTriggers(
+                data.triggers.map(
+                    (t: any) => t.trigger.id
+                )
+            );
             setNotes(data.notes || "");
 
             setEventDate(
@@ -72,32 +77,23 @@ export default function EditEventPage() {
             );
 
             setLoading(false);
+
+            const categoryResponse =
+            await fetch("/api/categories");
+
+        setCategories(
+            await categoryResponse.json()
+        );
+
+        const triggerResponse =
+            await fetch("/api/triggers");
+
+        setTriggers(
+            await triggerResponse.json()
+        );
         }
 
         loadEvent();
-
-        async function loadCategories() {
-            const response =
-                await fetch("/api/categories");
-
-            const data =
-                await response.json();
-
-            setCategories(data);
-        }
-
-        async function loadTriggers() {
-            const response =
-                await fetch("/api/triggers");
-
-            const data =
-                await response.json();
-
-            setTriggers(data);
-        }
-
-        loadCategories();
-        loadTriggers();
 
     }, [params.id]);
 
@@ -158,26 +154,34 @@ export default function EditEventPage() {
                 />
 
                 <label>Trigger</label>
-                <select
-                    className="border p-2 w-full"
-                    value={trigger}
-                    onChange={(e) =>
-                        setTrigger(e.target.value)
-                    }
-                >
-                    <option value="">
-                        No Trigger
-                    </option>
-
+                <div className="space-y-2">
                     {triggers.map((trigger) => (
-                        <option
+                        <label
                             key={trigger.id}
-                            value={trigger.name}
+                            className="flex items-center gap-2"
                         >
+                            <input
+                                type="checkbox"
+                                checked={selectedTriggers.includes(trigger.id)}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setSelectedTriggers([
+                                            ...selectedTriggers,
+                                            trigger.id,
+                                        ]);
+                                    } else {
+                                        setSelectedTriggers(
+                                            selectedTriggers.filter(
+                                                (id) => id !== trigger.id
+                                            )
+                                        );
+                                    }
+                                }}
+                            />
                             {trigger.name}
-                        </option>
+                        </label>
                     ))}
-                </select>
+                </div>
 
                 <label>Notes</label>
                 <textarea
