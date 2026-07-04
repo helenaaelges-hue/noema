@@ -6,6 +6,13 @@ export async function GET() {
         orderBy: {
             eventDate: "asc",
         },
+        include: {
+            triggers: {
+                include: {
+                    trigger: true,
+                },
+            },
+        },
     });
 
     return NextResponse.json(events);

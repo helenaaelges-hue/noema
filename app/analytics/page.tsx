@@ -3,7 +3,17 @@
 import {useEffect, useState} from "react";
 import Link from "next/link";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { calculateAverageMood, calculateCategoryStatistics, calculateTriggerCorrelations } from "@/src/lib/analytics"
+import {
+    getAverageMood,
+    getLatestMood,
+    getCategoryCounts,
+    getTriggerMoodAverages,
+} from "@/src/lib/insights";
+import {
+    getMoodPerTrigger,
+    getOverallAverageMood,
+} from "@/src/lib/correlations";
+import Accordion from "@/src/components/Accordion";
 
 export default function AnalyticsPage() {
     const [moodData, setMoodData] = useState<any[]>([]);
@@ -53,7 +63,13 @@ export default function AnalyticsPage() {
                 )
                 .map((event: any, index: number) => ({
                     day: new Date(event.eventDate)
-                        .toLocaleDateString(),
+                        .toLocaleDateString(
+                            "de-DE",
+                            {
+                                month: "short",
+                                day: "numeric",
+                            }
+                        ),
                     mood: event.moodScore,
                 }));
 
@@ -65,29 +81,33 @@ export default function AnalyticsPage() {
 
     const totalEvents = events.length;
 
-    const moodEvents =
-        events.filter(
-            (event) =>
-                event.moodScore !== null
-        );
-
     const averageMood =
-        calculateAverageMood(events);
+        getAverageMood(events);
 
-    const triggerCorrelations =
-        calculateTriggerCorrelations(events);
+    const latestMood =
+        getLatestMood(events);
+
+    const categoryCounts =
+        getCategoryCounts(events);
+
+    const triggerMoodAverages =
+        getTriggerMoodAverages(events);
 
     const bestTrigger =
-        triggerCorrelations[0] ?? null;
-    
+        triggerMoodAverages[0] ?? null;
+
     const worstTrigger =
-        triggerCorrelations[triggerCorrelations.length - 1] ?? null;
+        triggerMoodAverages.length
+            ? triggerMoodAverages[
+                triggerMoodAverages.length - 1
+            ]
+            : null;
 
-    const categoryStatistics = calculateCategoryStatistics(events);
-
-    const latestMood = moodEvents.length
-        ? moodEvents[moodEvents.length - 1]
-        : null;
+    const moodEvents = events.filter(
+        (event) =>
+            event.category === "Mood" &&
+            event.moodScore !== null
+    );
 
     const moodDistribution = Array.from(
         {length: 10},
@@ -99,6 +119,12 @@ export default function AnalyticsPage() {
             ).length,
         })
     );
+
+    const overallAverage =
+        getOverallAverageMood(events);
+
+    const triggerCorrelations =
+        getMoodPerTrigger(events);
 
     return (
         <main className="p-8 max-w-4xl mx-auto">
@@ -114,7 +140,10 @@ export default function AnalyticsPage() {
                 Mood trends based on recorded events.
             </p>
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
+        <Accordion
+            title="Overview"
+            defaultOpen
+        >
                 <div className="border rounded p-4">
                     <h2 className="font-semibold">
                         Total Events
@@ -131,7 +160,7 @@ export default function AnalyticsPage() {
                     </h2>
 
                     <p className="text-3xl">
-                        {averageMood}
+                        {averageMood ?? "-"}
                     </p>
                 </div>
 
@@ -177,17 +206,20 @@ export default function AnalyticsPage() {
 
                     <p>{topTrigger}</p>
                 </div>
-            </div>
+            </Accordion>
 
+            <Accordion
+                title="Trigger Analysis"
+            >
             <div className="border rounded-lg p-6 mb-8">
                 <h2 className="text-xl font-semibold mb-4">
                     Trigger Insights
                 </h2>
 
-                {triggerCorrelations.length === 0 ? (
+                {triggerMoodAverages.length === 0 ? (
                     <p>No mood data yet.</p>
                 ) : (
-                    triggerCorrelations.map((item) => (
+                    triggerMoodAverages.map((item) => (
                         <div
                             key={item.trigger}
                             className="mb-3"
@@ -202,14 +234,13 @@ export default function AnalyticsPage() {
                             </p>
 
                             <p>
-                                Difference from average:
+                                Difference from Overall Average:
                                 {" "}
-                                {item.difference > 0 ? "+" : ""}
-                                {item.difference}
+                                {(item.average - overallAverage).toFixed(1)}
                             </p>
 
                             <p>
-                                Entries:
+                                Entries: {" "}
                                 {item.entries}
                             </p>
                         </div>
@@ -235,7 +266,11 @@ export default function AnalyticsPage() {
                             </p>
 
                             <p>
-                                Average Mood: {bestTrigger.average}
+                                Average Mood: {bestTrigger.average}/10
+                            </p>
+
+                            <p>
+                                Based on {bestTrigger.entries} entries
                             </p>
                         </>
                     ) : (
@@ -260,7 +295,11 @@ export default function AnalyticsPage() {
                             </p>
 
                             <p>
-                                Average Mood: {worstTrigger.average}
+                                Average Mood: {worstTrigger.average}/10
+                            </p>
+
+                            <p>
+                                Based on {worstTrigger.entries} entries
                             </p>
                         </>
                     ) : (
@@ -268,24 +307,33 @@ export default function AnalyticsPage() {
                     )}
                 </div>
             </div>
+        </Accordion>
 
+        <Accordion
+            title="Category Analysis"
+        >
             <div className="border rounded-lg p-6 mb-8">
                 <h2 className="text-xl font-semibold mb-4">
                     Category Statistics
                 </h2>
 
-                {categoryStatistics.map(([category, count]) => (
-                    <div
-                        key={category}
-                        className="flex justify-between mb-2"
-                    >
-                        <span>{category}</span>
-
-                        <span>{count}</span>
-                    </div>
-                ))}
+                {Object.entries(categoryCounts).map(
+                    ([category, count]) => (
+                        <div
+                            key={category}
+                            className="flex justify-between mb-2"
+                        >
+                            <span>{category}</span>
+                            <span>{count}</span>
+                        </div>
+                    )
+                )}
             </div>
+        </Accordion>
 
+        <Accordion
+            title="Mood Analysis"
+        >
             <div className="border rounded-lg p-6">
                 <h2 className="text-xl font-semibold mb-4">
                     Mood Trend
@@ -322,6 +370,7 @@ export default function AnalyticsPage() {
                     <Bar dataKey="count" />
                 </BarChart>
             </div>
+        </Accordion>
         </main>
     );
 }
