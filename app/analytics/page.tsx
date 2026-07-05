@@ -8,18 +8,25 @@ import {
     getLatestMood,
     getCategoryCounts,
     getTriggerMoodAverages,
+    confidenceLabel,
 } from "@/src/lib/insights";
 import {
     getMoodPerTrigger,
     getOverallAverageMood,
+    getWeekdayCorrelation,
+    getTimeOfDayCorrelation,
 } from "@/src/lib/correlations";
 import Accordion from "@/src/components/Accordion";
+import {filterEvents} from "@/src/lib/correlationExplorer";
+import {getSelectionAverageMood, moodDifferenceFromBaseLine} from "@/src/lib/selectionAnalytics";
+import ConfidenceBadge from "@/src/components/ConfidenceBadge";
 
 export default function AnalyticsPage() {
     const [moodData, setMoodData] = useState<any[]>([]);
     const [events, setEvents] = useState<any[]>([]);
     const [totalMoodEntries, setTotalMoodEntries] = useState(0);
-    const [topTrigger, setTopTrigger] = useState("None");
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedTrigger, setSelectedTrigger] = useState<number | null>(null);
 
     useEffect(() => {
         async function loadData() {
@@ -27,6 +34,8 @@ export default function AnalyticsPage() {
             const data = await response.json();
 
             setEvents(data);
+
+            
 
             const moodEvents = data.filter(
                 (event: any) =>
@@ -38,22 +47,6 @@ export default function AnalyticsPage() {
                 moodEvents.length
             );
 
-            const triggerCounts: Record<string, number> = {};
-
-            moodEvents.forEach((event: any) => {
-                if (!event.trigger) return;
-
-                triggerCounts[event.trigger] =
-                    (triggerCounts[event.trigger] || 0) + 1;
-            });
-
-            const mostCommonTrigger =
-                Object.entries(triggerCounts)
-                    .sort((a, b) => b[1] - a[1])[0];
-
-            if (mostCommonTrigger) {
-                setTopTrigger(mostCommonTrigger[0]);
-            }
 
             const chartData = data
                 .filter(
@@ -126,6 +119,57 @@ export default function AnalyticsPage() {
     const triggerCorrelations =
         getMoodPerTrigger(events);
 
+    const topTrigger =
+        triggerCorrelations.length
+            ? triggerCorrelations.reduce(
+                (best, current) =>
+                    current.entries > best.entries
+                        ? current
+                        : best
+            ).trigger
+            : "None";
+
+    const categories =
+        Array.from(
+            new Set(
+                events.map((e) => e.category)
+            )
+        );
+
+    const triggers =
+        Array.from(
+            new Map(
+                events
+                    .flatMap((e) => e.triggers)
+                    .map((t) => [
+                        t.trigger.id,
+                        t.trigger,
+                    ])
+            ).values()
+        );
+
+    const filteredEvents =
+        filterEvents(
+            events,
+            selectedCategory,
+            selectedTrigger
+        );
+
+    const selectionAverage =
+        getSelectionAverageMood(filteredEvents);
+
+    const difference =
+        moodDifferenceFromBaseLine(
+            events,
+            filteredEvents
+        );
+
+    const weekdayData =
+        getWeekdayCorrelation(events);
+
+    const timeData =
+        getTimeOfDayCorrelation(events);
+
     return (
         <main className="p-8 max-w-4xl mx-auto">
             <Link href="/">
@@ -139,6 +183,80 @@ export default function AnalyticsPage() {
             <p className="mb-8">
                 Mood trends based on recorded events.
             </p>
+
+
+        <Accordion title="Correlation Explorer">
+            <select
+                className="border p-2 w-full mb-4"
+                value={selectedCategory}
+                onChange={(e)=>
+                    setSelectedCategory(e.target.value)
+                }
+            >
+                <option value="">
+                    All Categories
+                </option>
+
+                {categories.map((category)=>(
+                    <option
+                        key={category}
+                        value={category}
+                    >
+                        {category}
+                    </option>
+                ))}
+            </select>
+
+            <select
+                className="border p-2 w-full mb-4"
+                value={selectedTrigger ?? ""}
+                onChange={(e)=>
+                    setSelectedTrigger(
+                        e.target.value
+                            ? Number(e.target.value)
+                            : null
+                    )
+                }
+            >
+                <option value="">
+                    All Triggers
+                </option>
+
+                {triggers.map((trigger)=>(
+
+                    <option
+                        key={trigger.id}
+                        value={trigger.id}
+                    >
+                        {trigger.name}
+                    </option>
+                ))}
+            </select>
+
+            <p className="mb-4">
+                Matching Events:
+
+                <strong>
+                    {" "}
+                    {filteredEvents.length}
+                </strong>
+            </p>
+
+            <p>
+                Average Mood:
+                {" "}
+                {selectionAverage ?? "-"}
+            </p>
+
+            <p>
+                Difference from Overall Average Mood:{" "}
+                {difference === null
+                    ? "-"
+                    : difference > 0
+                        ? `+${difference}`
+                        : difference}
+            </p>
+        </Accordion>
 
         <Accordion
             title="Overview"
@@ -243,6 +361,10 @@ export default function AnalyticsPage() {
                                 Entries: {" "}
                                 {item.entries}
                             </p>
+
+                            <ConfidenceBadge
+                                level={confidenceLabel(item.entries)}
+                            />
                         </div>
                     ))
                 )}
@@ -270,8 +392,13 @@ export default function AnalyticsPage() {
                             </p>
 
                             <p>
-                                Based on {bestTrigger.entries} entries
+                                Entries:{" "}
+                                {bestTrigger.entries}
                             </p>
+
+                            <ConfidenceBadge
+                                level={confidenceLabel(bestTrigger.entries)}
+                            />
                         </>
                     ) : (
                         <p>No data</p>
@@ -299,8 +426,13 @@ export default function AnalyticsPage() {
                             </p>
 
                             <p>
-                                Based on {worstTrigger.entries} entries
+                                Entries:{" "}
+                                {worstTrigger.entries}
                             </p>
+
+                            <ConfidenceBadge
+                                level={confidenceLabel(worstTrigger.entries)}
+                            />
                         </>
                     ) : (
                         <p>No data</p>

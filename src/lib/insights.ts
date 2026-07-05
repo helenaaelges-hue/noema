@@ -113,25 +113,40 @@ export function getTriggerMoodAverages(
 
     return Object.entries(totals)
         .map(([trigger, values]) => {
-            const average =
-                values.total / values.count;
+            const average = values.total / values.count;
 
             return {
                 trigger,
                 average: Number(
                     average.toFixed(1)
                 ),
+
                 difference: Number(
                     (
                         average -
                         overallAverage
                     ).toFixed(1)
                 ),
+
                 entries: values.count,
-            };
+            }
         })
         .sort(
             (a, b) =>
                 b.average - a.average
         );
+}
+
+export function confidenceLabel(
+    entries: number
+) {
+    if (entries >= 30) {
+        return "High";
+    }
+
+    if (entries >= 10) {
+        return "Moderate";
+    }
+
+    return "Low";
 }
