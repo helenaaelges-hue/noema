@@ -23,7 +23,7 @@ export default function ConfidenceBadge({
 
     return (
         <span className={classes}>
-            {level}
+            Confidence: {level.charAt(0).toUpperCase() + level.slice(1)}
         </span>
     );
 }

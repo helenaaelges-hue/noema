@@ -28,37 +28,37 @@ export function generateInsights(
 
         const best = triggerData[0];
 
-        for (const trigger of triggerData) {
+        const weakTriggers =
+            triggerData.filter(
+                t => t.entries < 5
+            );
 
-            if (trigger.entries >= 5) {
-                continue;
-            }
-
+        if (weakTriggers.length > 0) {
             insights.push({
-                title: "More Data Needed",
+                title: "Collect More Data",
                 description:
-                    `${trigger.label} only has ${trigger.entries} recorded ${
-                        trigger.entries === 1
-                            ? "entry"
-                            : "entries"
-                    }. More data is needed before reliable conclusions can be drawn.`,
+                    `${weakTriggers.length} trigger${
+                        weakTriggers.length === 1
+                            ? ""
+                            : "s"
+                    } still need more observation before reliable conclusions can be drawn.`,
                 confidence: "Low",
                 impact: 0,
-                strength: 0, 
+                strength: 0,
             });
         }
 
         if (
-            Math.abs(best.difference) >= 0.5
+            Math.abs(best.difference) >= 1
         ) {
         
             insights.push({
 
                 title:
-                    "Strongest Positive Trigger",
+                    "Biggest Positive Influence",
 
                 description:
-                    `${best.label} is associated with moods ${best.difference > 0 ? "+" : ""}${best.difference} above your average.`,
+                    `${best.label} is associated with an average mood that is ${best.difference > 0 ? "+" : ""}${best.difference} points higher than your usual mood.`,
 
                 confidence:
                     confidence(best.entries),
@@ -80,16 +80,16 @@ export function generateInsights(
             ];
 
         if (
-            Math.abs(worst.difference) >= 0.5
+            Math.abs(worst.difference) >= 1
         ) {
 
             insights.push({
 
                 title:
-                    "Strongest Negative Trigger",
+                    "Biggest Negative Influence",
 
                 description:
-                    `${worst.label} is associated with moods ${worst.difference} below your average.`,
+                    `${worst.label} is associated with an average mood that is ${worst.difference} points lower than your usual mood.`,
 
                 confidence:
                     confidence(worst.entries),
@@ -110,6 +110,31 @@ export function generateInsights(
 
         const bestDay =
             weekdays[0];
+
+        const worstDay =
+            weekdays[
+                weekdays.length - 1
+            ];
+
+        if (
+            Math.abs(worstDay.difference) >= 1
+        ) {
+            insights.push({
+                title: "Most Challenging Day",
+                description:
+                    `Your mood tends to be lowest on ${worstDay.label}.`,
+                confidence:
+                    confidence(
+                        worstDay.entries
+                    ),
+                impact:
+                    worstDay.difference,
+                strength:
+                    Math.abs(
+                        worstDay.difference
+                    ),
+            });
+        }
 
         insights.push({
 
@@ -137,6 +162,23 @@ export function generateInsights(
 
         const best =
             times[0];
+
+        const worst =
+            times[
+                times.length - 1
+            ];
+
+        if (
+            Math.abs(worst.difference) >= 1
+        ) {
+            insights.push({
+                title: "Most Challenging Time",
+                description: `Your mood tends to be lowest in the ${worst.label.toLowerCase()}.`,
+                confidence: confidence(worst.entries),
+                impact: worst.difference,
+                strength: Math.abs(worst.difference),
+            });
+        }
 
         insights.push({
 
