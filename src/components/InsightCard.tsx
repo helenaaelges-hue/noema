@@ -1,3 +1,5 @@
+import ConfidenceBadge from "./ConfidenceBadge";
+
 type Props = {
     title: string;
     description: string;
@@ -11,27 +13,30 @@ export default function InsightCard({
     confidence,
     impact,
 }: Props) {
-    const color =
-        impact >= 1
-            ? "border-green-500"
-            : impact <= -1
-            ? "border-red-500"
-            : "border-gray-300";
+    let border = "border-gray-300";
+
+    if (impact >= 1) {
+        border = "border-green-500";
+    } else if (impact <= -1) {
+        border = "border-red-500";
+    }
 
     return (
         <div
-            className={`border-l-4 ${color} rounded p-4 bg-white shadow-sm`}
+            className={`border-l-4 ${border} rounded p-4 bg-white shadow-sm`}
         >
-            <h3 className="font-semibold text-lg">
-                {title}
-            </h3>
+            <div className="flex justify-between items-start">
+                <h3 className="font-semibold">
+                    {title}
+                </h3>
 
-            <p className="mt-1">
+                <ConfidenceBadge
+                    level={confidence}
+                />
+            </div>
+
+            <p className="mt-2 text-sm">
                 {description}
-            </p>
-
-            <p className="text-sm text-gray-500 mt-3">
-                Confidence: {confidence}
             </p>
         </div>
     );

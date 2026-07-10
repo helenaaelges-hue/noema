@@ -22,6 +22,7 @@ import {getSelectionAverageMood, moodDifferenceFromBaseLine} from "@/src/lib/sel
 import ConfidenceBadge from "@/src/components/ConfidenceBadge";
 import {generateInsights} from "@/src/lib/generateInsights";
 import InsightCard from "@/src/components/InsightCard";
+import {getTriggerCombinations} from "@/src/lib/combinations";
 
 export default function AnalyticsPage() {
     const [moodData, setMoodData] = useState<any[]>([]);
@@ -175,6 +176,9 @@ export default function AnalyticsPage() {
     const insights =
         generateInsights(events);
 
+    const triggerCombinations =
+        getTriggerCombinations(events);
+
     return (
         <main className="p-8 max-w-4xl mx-auto">
             <Link href="/">
@@ -288,7 +292,7 @@ export default function AnalyticsPage() {
         </div>
 
         <Accordion
-            title="Insights For You"
+            title="💡 Did You Know?"
             defaultOpen
         >
             <div className="space-y-4">

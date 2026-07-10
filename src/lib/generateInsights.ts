@@ -55,10 +55,10 @@ export function generateInsights(
             insights.push({
 
                 title:
-                    "Biggest Positive Influence",
+                    "💚 Biggest Positive Influence",
 
                 description:
-                    `${best.label} is associated with an average mood that is ${best.difference > 0 ? "+" : ""}${best.difference} points higher than your usual mood.`,
+                    `${best.label} consistently coincides with better moods than your personal average. It may be worth making this a regular part of your routine.`,
 
                 confidence:
                     confidence(best.entries),
@@ -86,10 +86,10 @@ export function generateInsights(
             insights.push({
 
                 title:
-                    "Biggest Negative Influence",
+                    "⚠️ Biggest Negative Influence",
 
                 description:
-                    `${worst.label} is associated with an average mood that is ${worst.difference} points lower than your usual mood.`,
+                    `${worst.label} frequently appears before lower mood ratings. Consider whether there are ways to reduce or prepare for this trigger. `,
 
                 confidence:
                     confidence(worst.entries),
@@ -117,12 +117,12 @@ export function generateInsights(
             ];
 
         if (
-            Math.abs(worstDay.difference) >= 1
+            Math.abs(worstDay.difference) >= 0.5
         ) {
             insights.push({
-                title: "Most Challenging Day",
+                title: "🫩 Most Challenging Day",
                 description:
-                    `Your mood tends to be lowest on ${worstDay.label}.`,
+                    `You consistently report your lowest moods on ${worstDay.label}. This may be worth paying attention to over the coming weeks.`,
                 confidence:
                     confidence(
                         worstDay.entries
@@ -136,23 +136,26 @@ export function generateInsights(
             });
         }
 
-        insights.push({
+        if (Math.abs(bestDay.difference) >= 0.5) {
+            
+            insights.push({
 
-            title:
-                "Best Day",
+                title:
+                    "📆 Best Day",
 
-            description:
-                `Your mood tends to be highest on ${bestDay.label}.`,
+                description:
+                    `You consistently report your highest moods on ${bestDay.label}. Think about what makes that day different from the rest of your week.`,
 
-            confidence:
-                confidence(bestDay.entries),
+                confidence:
+                    confidence(bestDay.entries),
 
-            impact:
-                bestDay.difference,
-        
-            strength:
-            Math.abs(bestDay.difference),
-        });
+                impact:
+                    bestDay.difference,
+            
+                strength:
+                    Math.abs(bestDay.difference),
+            });
+        }
     }
 
     const times =
@@ -169,34 +172,37 @@ export function generateInsights(
             ];
 
         if (
-            Math.abs(worst.difference) >= 1
+            Math.abs(worst.difference) >= 0.5
         ) {
             insights.push({
-                title: "Most Challenging Time",
-                description: `Your mood tends to be lowest in the ${worst.label.toLowerCase()}.`,
+                title: "⛈️ Most Challenging Time",
+                description: `Your ${worst.label.toLowerCase()}s tend to have lower mood ratings than the rest of your day.`,
                 confidence: confidence(worst.entries),
                 impact: worst.difference,
                 strength: Math.abs(worst.difference),
             });
         }
 
-        insights.push({
+        if (Math.abs(best.difference) >= 0.5) {
 
-            title:
-                "Best Time",
+                insights.push({
 
-            description:
-                `Your mood tends to be highest in the ${best.label.toLowerCase()}.`,
+                    title:
+                        "🌞 Best Time",
 
-            confidence:
-                confidence(best.entries),
+                    description:
+                        `Your ${best.label.toLowerCase()}s appear noticeably better than other times of day. If possible, schedule important activities then.`,
 
-            impact:
-                best.difference,
-        
-            strength:
-            Math.abs(best.difference),
-        });
+                    confidence:
+                        confidence(best.entries),
+
+                    impact:
+                        best.difference,
+                
+                    strength:
+                        Math.abs(best.difference),
+            });
+        }
     }
 
     return insights
