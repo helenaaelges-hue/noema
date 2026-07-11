@@ -12,6 +12,7 @@ export type Insight = {
     confidence: "Low" | "Medium" | "High";
     impact: number;
     strength: number;
+    score: number;
 };
 
 export function generateInsights(
@@ -45,6 +46,7 @@ export function generateInsights(
                 confidence: "Low",
                 impact: 0,
                 strength: 0,
+                score: 0,
             });
         }
 
@@ -68,6 +70,12 @@ export function generateInsights(
                 
                 strength:
                     Math.abs(best.difference),
+
+                score:
+                    insightScore(
+                        best.difference,
+                        best.entries
+                    ),
             });
         }
     }
@@ -98,7 +106,13 @@ export function generateInsights(
                     worst.difference,
             
                 strength:
-                Math.abs(worst.difference),
+                    Math.abs(worst.difference),
+
+                score:
+                    insightScore(
+                        worst.difference,
+                        worst.entries
+                    ),
             });
         }
     }
@@ -133,6 +147,12 @@ export function generateInsights(
                     Math.abs(
                         worstDay.difference
                     ),
+
+                score:
+                    insightScore(
+                        worstDay.difference,
+                        worstDay.entries
+                    ),
             });
         }
 
@@ -154,6 +174,12 @@ export function generateInsights(
             
                 strength:
                     Math.abs(bestDay.difference),
+
+                score:
+                    insightScore(
+                        bestDay.difference,
+                        bestDay.entries
+                    ),
             });
         }
     }
@@ -180,6 +206,7 @@ export function generateInsights(
                 confidence: confidence(worst.entries),
                 impact: worst.difference,
                 strength: Math.abs(worst.difference),
+                score: insightScore(worst.difference, worst.entries),
             });
         }
 
@@ -201,6 +228,12 @@ export function generateInsights(
                 
                     strength:
                         Math.abs(best.difference),
+
+                    score:
+                        insightScore(
+                            best.difference,
+                            best.entries
+                        ),
             });
         }
     }
@@ -208,7 +241,7 @@ export function generateInsights(
     return insights
         .sort(
             (a, b) =>
-                b.strength - a.strength
+                b.score - a.score
         )
         .slice(0, 5);
 }
@@ -224,4 +257,21 @@ function confidence(
         return "Medium";
 
     return "Low";
+}
+
+function insightScore(
+    difference: number,
+    entries: number
+) {
+    const confidenceMultiplier =
+        entries >= 20
+            ? 1
+            : entries >= 8
+                ? 0.7
+                : 0.4;
+
+    return (
+        Math.abs(difference) *
+        confidenceMultiplier
+    );
 }

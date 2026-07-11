@@ -23,13 +23,16 @@ import ConfidenceBadge from "@/src/components/ConfidenceBadge";
 import {generateInsights} from "@/src/lib/generateInsights";
 import InsightCard from "@/src/components/InsightCard";
 import {getTriggerCombinations} from "@/src/lib/combinations";
+import {filterByTimeRange, TimeRange} from "@/src/lib/timeFilter";
+import {movingAverage} from "@/src/lib/movingAverage";
+import {getMoodTrend} from "@/src/lib/trends";
 
 export default function AnalyticsPage() {
-    const [moodData, setMoodData] = useState<any[]>([]);
     const [events, setEvents] = useState<any[]>([]);
     const [totalMoodEntries, setTotalMoodEntries] = useState(0);
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedTrigger, setSelectedTrigger] = useState<number | null>(null);
+    const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
     useEffect(() => {
         async function loadData() {
@@ -49,27 +52,6 @@ export default function AnalyticsPage() {
             setTotalMoodEntries(
                 moodEvents.length
             );
-
-
-            const chartData = data
-                .filter(
-                    (event: any) =>
-                        event.category === "Mood" &&
-                        event.moodScore !== null
-                )
-                .map((event: any, index: number) => ({
-                    day: new Date(event.eventDate)
-                        .toLocaleDateString(
-                            "de-DE",
-                            {
-                                month: "short",
-                                day: "numeric",
-                            }
-                        ),
-                    mood: event.moodScore,
-                }));
-
-            setMoodData(chartData);
         }
 
         loadData();
@@ -77,17 +59,64 @@ export default function AnalyticsPage() {
 
     const totalEvents = events.length;
 
+    const visibleEvents =
+        filterByTimeRange(
+            events,
+            timeRange
+        );
+
+    const moodEntries =
+        visibleEvents
+            .filter(
+                event =>
+                    event.category === "Mood" &&
+                    event.moodScore !== null
+            )
+            .sort(
+                (a, b) =>
+                    new Date(a.eventDate).getTime() -
+                    new Date(b.eventDate).getTime()
+            );
+
+    const smoothedMood =
+            movingAverage(
+                moodEntries.map(
+                    entry => entry.moodScore!
+                ),
+                7
+            );
+
+    const moodData =
+            moodEntries.map(
+                (entry, index) => ({
+                    day:
+                        new Date(
+                            entry.eventDate
+                        ).toLocaleDateString(
+                            "de-DE",
+                            {
+                                month: "short",
+                                day: "numeric",
+                            }
+                        ),
+                    mood:
+                        smoothedMood[index],
+                    actual:
+                        entry.moodScore,
+                })
+            );
+
     const averageMood =
-        getAverageMood(events);
+        getAverageMood(visibleEvents);
 
     const latestMood =
-        getLatestMood(events);
+        getLatestMood(visibleEvents);
 
     const categoryCounts =
-        getCategoryCounts(events);
+        getCategoryCounts(visibleEvents);
 
     const triggerMoodAverages =
-        getTriggerMoodAverages(events);
+        getTriggerMoodAverages(visibleEvents);
 
     const bestTrigger =
         triggerMoodAverages[0] ?? null;
@@ -117,10 +146,10 @@ export default function AnalyticsPage() {
     );
 
     const overallAverage =
-        getOverallAverageMood(events);
+        getOverallAverageMood(visibleEvents);
 
     const triggerCorrelations =
-        getMoodPerTrigger(events);
+        getMoodPerTrigger(visibleEvents);
 
     const topTrigger =
         triggerCorrelations.length
@@ -168,16 +197,24 @@ export default function AnalyticsPage() {
         );
 
     const weekdayData =
-        getWeekdayCorrelation(events);
+        getWeekdayCorrelation(visibleEvents);
 
     const timeData =
-        getTimeOfDayCorrelation(events);
+        getTimeOfDayCorrelation(visibleEvents);
 
     const insights =
-        generateInsights(events);
+        generateInsights(visibleEvents);
 
     const triggerCombinations =
-        getTriggerCombinations(events);
+        getTriggerCombinations(visibleEvents);
+
+    const topInsight =
+        insights.length > 0
+            ? insights[0]
+            : null;
+
+    const moodTrends =
+        getMoodTrend(events);
 
     return (
         <main className="p-8 max-w-4xl mx-auto">
@@ -192,6 +229,55 @@ export default function AnalyticsPage() {
             <p className="mb-8">
                 Mood trends based on recorded events.
             </p>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-8">
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Average Mood
+                    </p>
+
+                    <p className="text-3xl font-bold">
+                        {averageMood ?? "-"}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Current Trend
+                    </p>
+
+                    <p className="text-2xl font-semibold">
+                        {moodTrends.label}
+                    </p>
+
+                    <p className="text-sm text-gray-500">
+                        {moodTrends.value > 0 ? "+" : ""}
+                        {moodTrends.value}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Most Positive Trigger
+                    </p>
+
+                    <p className="text-xl font-semibold">
+                        {bestTrigger?.trigger ?? "-"}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Strongest Insight
+                    </p>
+
+                    <p className="font-medium">
+                        {topInsight?.title ?? "-"}
+                    </p>
+                </div>
+            </div>
+
+
 
 
         <Accordion title="Correlation Explorer">
@@ -291,6 +377,42 @@ export default function AnalyticsPage() {
             </ul>
         </div>
 
+        <div className="flex items-center gap-3 mb-6">
+            
+
+            <div className="mb-6">
+                <p className="font-medium mb-2">
+                    Time Range
+                </p>
+                <div className="flex flex-wrap gap-2">
+                    {[
+                        ["7d", "7D"],
+                        ["30d", "30D"],
+                        ["90d", "90D"],
+                        ["365d", "1Y"],
+                        ["all", "All"],
+                    ].map(([value, label]) => (
+
+                        <button
+                            key={value}
+                            onClick={() =>
+                                setTimeRange(
+                                    value as TimeRange
+                                )
+                            }
+                            className={`px-4 py-2 rounded-lg border transition ${
+                                timeRange === value
+                                    ? "bg-black text-white"
+                                    : "bg-white hover:bg-gray-100"
+                            }`}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+
         <Accordion
             title="💡 Did You Know?"
             defaultOpen
@@ -318,68 +440,121 @@ export default function AnalyticsPage() {
             title="Overview"
             defaultOpen
         >
-                <div className="border rounded p-4">
-                    <h2 className="font-semibold">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
                         Total Events
-                    </h2>
+                    </p>
 
-                    <p className="text-3xl">
+                    <p className="text-3xl font-bold mt-2">
                         {totalEvents}
                     </p>
                 </div>
 
-                <div className="border rounded p-4">
-                    <h2 className="font-semibold">
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
                      Average Mood
-                    </h2>
+                    </p>
 
-                    <p className="text-3xl">
+                    <p className="text-3xl font-bold mt-2">
                         {averageMood ?? "-"}
                     </p>
                 </div>
-
-                <div className="border rounded-lg p-6 mb-8">
-                    <h2 className="text-xl font-semibold mb-4">
-                        Latest Mood
-                    </h2>
-
-                    {latestMood ? (
-                        <>
-                            <p>
-                                <strong>Value:</strong> {latestMood.value}
-                            </p>
-
-                            <p>
-                                <strong>Score:</strong> {latestMood.moodScore}
-                            </p>
-
-                            <p>
-                                <strong>Date:</strong>{" "}
-                                {new Date(
-                                    latestMood.eventDate
-                                ).toLocaleString()}
-                            </p>
-                        </>
-                    ) : (
-                        <p>No mood entries yet.</p>
-                    )}
-                </div>
             
-                <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold">
-                        Total Mood Entries
-                    </h3>
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
+                        Mood Entries
+                    </p>
 
-                    <p>{totalMoodEntries}</p>
+                    <p className="text-3xl font-bold mt-2">
+                        {totalMoodEntries}
+                    </p>
                 </div>
 
-                <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold">
+                <div className="rounded-xl border p-5">
+                    <p className="text-sm text-gray-500">
                         Top Trigger
-                    </h3>
+                    </p>
 
-                    <p>{topTrigger}</p>
+                    <p className="text-3xl font-bold mt-2">
+                        {topTrigger}
+                    </p>
                 </div>
+            </div>
+
+            <div className="border rounded-lg p-6 mb-8">
+                <h2 className="text-xl font-semibold mb-4">
+                    Latest Mood
+                </h2>
+
+                {latestMood ? (
+                    <>
+                        <p>
+                            <strong>Value:</strong> {latestMood.value}
+                        </p>
+
+                        <p>
+                            <strong>Score:</strong> {latestMood.moodScore}
+                        </p>
+
+                        <p>
+                            <strong>Date:</strong>{" "}
+                            {new Date(
+                                latestMood.eventDate
+                            ).toLocaleString()}
+                        </p>
+                    </>
+                ) : (
+                    <p>No mood entries yet.</p>
+                )}
+            </div>
+            </Accordion>
+
+            <Accordion
+                title="Trigger Combinations"
+            >
+                {triggerCombinations.length === 0 ? (
+                    <p>
+                        Not enough combination data yet.
+                    </p>
+                ) : (
+                    <div className="space-y-4">
+                        {triggerCombinations
+                            .slice(0, 10)
+                            .map((combo) => (
+
+                            <div
+                                key={combo.label}
+                                className="border rounded-lg p-4"
+                            >
+                                <h3 className="font-semibold">
+                                    {combo.label}
+                                </h3>
+
+                                <p>
+                                    Average Mood:{" "}
+                                    {combo.averageMood.toFixed(1)}
+                                </p>
+
+                                <p>
+                                    Difference:{" "}
+                                    {combo.difference > 0
+                                        ? "+"
+                                        : ""}
+                                    {combo.difference}
+                                </p>
+
+                                <p>
+                                    Entries: {combo.entries}
+                                </p>
+
+                                <ConfidenceBadge
+                                    level={confidenceLabel(combo.entries)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </Accordion>
 
             <Accordion
@@ -535,8 +710,39 @@ export default function AnalyticsPage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="day" />
                     <YAxis domain={[0, 10]} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="mood" />
+                    <Tooltip
+                        formatter={(
+                            value,
+                            name
+                        ) => {
+                            if (
+                                name === "mood"
+                            ) {
+                                return [
+                                    value,
+                                    "Trend",
+                                ];
+                            }
+
+                            return [
+                                value,
+                                "Actual",
+                            ];
+                        }}
+                    />
+
+                    <Line
+                        dataKey="actual"
+                        stroke="#bdbdbd"
+                        strokeWidth={1}
+                        dot={false}
+                    />
+
+                    <Line
+                        dataKey="mood"
+                        strokeWidth={3}
+                        dot={false}
+                    />
                 </LineChart>
             </div>
 

@@ -17,6 +17,10 @@ export function getTriggerCombinations(
             event.moodScore !== null
     );
 
+    if (moodEvents.length === 0) {
+        return [];
+    }
+
     const overallAverage =
         moodEvents.reduce(
             (sum, event) =>
@@ -75,6 +79,7 @@ export function getTriggerCombinations(
                 ),
             };
         })
+        .filter(item => item.entries >= 3)
         .sort(
             (a, b) =>
                 b.averageMood -
