@@ -15,14 +15,16 @@ export function getSelectionAverageMood(
         return null;
     }
 
-    return (
-        moods.reduce(
-            (sum, e)=>
-                sum + e.moodScore!,
-            0
-        ) /
-        moods.length
-    ).toFixed(1);
+    return Number(
+        (
+            moods.reduce(
+                (sum, e)=>
+                    sum + e.moodScore!,
+                0
+            ) /
+            moods.length
+        ).toFixed(1)
+    );
 }
 
 export function moodDifferenceFromBaseLine(
@@ -44,8 +46,8 @@ export function moodDifferenceFromBaseLine(
 
     return Number(
         (
-            Number(selected) -
-            Number(overall)
+            selected -
+            overall
         ).toFixed(1)
     );
 }
