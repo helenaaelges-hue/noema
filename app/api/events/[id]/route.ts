@@ -1,37 +1,61 @@
-import { prisma } from "@/src/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function DELETE(
-    request: Request,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    const { id } = await params;
+import { prisma } from "@/src/lib/prisma";
+import {
+    requireUserId,
+} from "@/src/lib/currentUser";
+import {
+    serializeEvent,
+} from "@/src/lib/serializeEvent";
 
-    await prisma.event.delete({
-        where: {
-            id: Number(id),
-        },
-    });
+function parseTriggerIds(
+    value: unknown
+): number[] {
+    if (!Array.isArray(value)) {
+        return [];
+    }
 
-    return NextResponse.json({
-        success: true,
-    });
+    return Array.from(
+        new Set(
+            value
+                .map(Number)
+                .filter(
+                    id =>
+                        Number.isInteger(id) &&
+                        id > 0
+                )
+        )
+    );
 }
 
 export async function GET(
     request: Request,
-    { params }: {
-        params: Promise<{ id: string }>
+    {
+        params,
+    }: {
+        params: Promise<{
+            id: string;
+        }>;
     }
 ) {
-    const { id } = await params;
+    const userId =
+        await requireUserId();
+
+    const { id } =
+        await params;
+
+    const eventId =
+        Number(id);
 
     const event =
-        await prisma.event.findUnique({
+        await prisma.event.findFirst({
             where: {
-                id: Number(id),
+                id: eventId,
+                userId,
             },
+
             include: {
+                category: true,
                 triggers: {
                     include: {
                         trigger: true,
@@ -40,66 +64,324 @@ export async function GET(
             },
         });
 
-    return NextResponse.json(event);
+    if (!event) {
+        return NextResponse.json(
+            {
+                error:
+                    "Event not found.",
+            },
+            {
+                status: 404,
+            }
+        );
+    }
+
+    return NextResponse.json(
+        serializeEvent(event)
+    );
 }
 
 export async function PUT(
     request: Request,
-    { params }: {
-        params: Promise<{ id: string }>
+    {
+        params,
+    }: {
+        params: Promise<{
+            id: string;
+        }>;
     }
 ) {
-    const body =
-        await request.json();
+    const userId =
+        await requireUserId();
 
     const { id } =
         await params;
 
+    const eventId =
+        Number(id);
+
+    const existingEvent =
+        await prisma.event.findFirst({
+            where: {
+                id: eventId,
+                userId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+    if (!existingEvent) {
+        return NextResponse.json(
+            {
+                error:
+                    "Event not found.",
+            },
+            {
+                status: 404,
+            }
+        );
+    }
+
+    const body =
+        await request.json();
+
+    const categoryName =
+        typeof body.category === "string"
+            ? body.category.trim()
+            : "";
+
+    const value =
+        typeof body.value === "string"
+            ? body.value.trim()
+            : "";
+
+    if (!categoryName || !value) {
+        return NextResponse.json(
+            {
+                error:
+                    "Category and value are required.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    const category =
+        await prisma.category.findUnique({
+            where: {
+                userId_name: {
+                    userId,
+                    name: categoryName,
+                },
+            },
+        });
+
+    if (!category) {
+        return NextResponse.json(
+            {
+                error:
+                    "The selected category does not exist.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    const moodScore =
+        body.moodScore === "" ||
+        body.moodScore === null ||
+        body.moodScore === undefined
+            ? null
+            : Number(body.moodScore);
+
+    if (
+        moodScore !== null &&
+        (
+            !Number.isInteger(moodScore) ||
+            moodScore < 1 ||
+            moodScore > 10
+        )
+    ) {
+        return NextResponse.json(
+            {
+                error:
+                    "Mood score must be a whole number from 1 to 10.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    const eventDate =
+        new Date(
+            body.eventDate
+        );
+
+    if (
+        Number.isNaN(
+            eventDate.getTime()
+        )
+    ) {
+        return NextResponse.json(
+            {
+                error:
+                    "The event date is invalid.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    const requestedTriggerIds =
+        parseTriggerIds(
+            body.triggerIds
+        );
+
+    const ownedTriggers =
+        requestedTriggerIds.length > 0
+            ? await prisma.trigger.findMany({
+                where: {
+                    userId,
+                    id: {
+                        in: requestedTriggerIds,
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            })
+            : [];
+
+    if (
+        ownedTriggers.length !==
+        requestedTriggerIds.length
+    ) {
+        return NextResponse.json(
+            {
+                error:
+                    "One or more selected triggers are invalid.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    const updatedEvent =
+        await prisma.$transaction(
+            async transaction => {
+                await transaction
+                    .eventTrigger
+                    .deleteMany({
+                        where: {
+                            eventId,
+                        },
+                    });
+
+                await transaction.event.update({
+                    where: {
+                        id: eventId,
+                    },
+
+                    data: {
+                        categoryId:
+                            category.id,
+                        value,
+                        moodScore,
+                        notes:
+                            typeof body.notes ===
+                                "string" &&
+                            body.notes.trim()
+                                ? body.notes.trim()
+                                : null,
+                        eventDate,
+                    },
+                });
+
+                if (
+                    ownedTriggers.length > 0
+                ) {
+                    await transaction
+                        .eventTrigger
+                        .createMany({
+                            data:
+                                ownedTriggers.map(
+                                    trigger => ({
+                                        eventId,
+                                        triggerId:
+                                            trigger.id,
+                                    })
+                                ),
+                        });
+                }
+
+                return transaction
+                    .event.findUniqueOrThrow({
+                        where: {
+                            id: eventId,
+                        },
+
+                        include: {
+                            category: true,
+                            triggers: {
+                                include: {
+                                    trigger: true,
+                                },
+                            },
+                        },
+                    });
+            }
+        );
+
+    return NextResponse.json(
+        serializeEvent(
+            updatedEvent
+        )
+    );
+}
+
+export async function DELETE(
+    request: Request,
+    {
+        params,
+    }: {
+        params: Promise<{
+            id: string;
+        }>;
+    }
+) {
+    const userId =
+        await requireUserId();
+
+    const { id } =
+        await params;
+
+    const eventId =
+        Number(id);
+
     const event =
-        await prisma.event.update({
+        await prisma.event.findFirst({
             where: {
-                id: Number(id),
+                id: eventId,
+                userId,
             },
-
-            data: {
-                category: body.category,
-                value: body.value,
-
-                moodScore:
-                    body.moodScore
-                        ? Number(
-                            body.moodScore
-                        )
-                        : null,
-
-                notes:
-                    body.notes,
-
-                eventDate:
-                    new Date(
-                        body.eventDate
-                    ),
+            select: {
+                id: true,
             },
         });
 
-        await prisma.eventTrigger.deleteMany({
-            where: {
-                eventId: Number(id),
+    if (!event) {
+        return NextResponse.json(
+            {
+                error:
+                    "Event not found.",
             },
-        });
+            {
+                status: 404,
+            }
+        );
+    }
 
-        if (body.triggerIds?.length > 0) {
-            await prisma.eventTrigger.createMany({
-                data:
-                    body.triggerIds.map(
-                        (triggerId: number) => ({
-                            eventId:
-                                Number(id),
-                            triggerId,
-                        })
-                    ),
-            });
-        }
+    await prisma.$transaction([
+        prisma.eventTrigger.deleteMany({
+            where: {
+                eventId,
+            },
+        }),
 
-    return NextResponse.json(event);
+        prisma.event.delete({
+            where: {
+                id: eventId,
+            },
+        }),
+    ]);
+
+    return NextResponse.json({
+        success: true,
+    });
 }

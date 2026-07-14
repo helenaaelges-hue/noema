@@ -10,7 +10,10 @@ datasource db {
 model Event {
   id        Int      @id @default(autoincrement())
 
-  category  String
+  categoryId Int
+
+  category  Category @relation(fields: [categoryId], references: [id])
+
   value     String
   moodScore Int?
 
@@ -19,17 +22,33 @@ model Event {
 
   eventDate DateTime
   createdAt DateTime @default(now())
+
+  userId    Int
+  user      User @relation(fields: [userId], references: [id])
 }
 
 model Category {
   id     Int     @id @default(autoincrement())
-  name   String  @unique
+  name   String 
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  events Event[]
+
+  @@unique([userId, name])
 }
 
 model Trigger {
   id     Int     @id @default(autoincrement())
-  name   String  @unique
+  name   String  
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
   events EventTrigger[]
+
+  @@unique([userId, name])
 }
 
 model EventTrigger {
@@ -40,4 +59,17 @@ model EventTrigger {
   trigger   Trigger @relation(fields: [triggerId], references: [id])
 
   @@id([eventId, triggerId])
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+
+  createdAt    DateTime @default(now())
+
+  events     Event[]
+  categories Category[]
+  triggers   Trigger[]
 }

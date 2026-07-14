@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
             ]
             : null;
 
-    const moodEvents = events.filter(
+    const moodEvents = visibleEvents.filter(
         (event) =>
             event.category === "Mood" &&
             event.moodScore !== null
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
 
     const difference =
         moodDifferenceFromBaseLine(
-            events,
+            visibleEvents,
             filteredEvents
         );
 
@@ -206,7 +206,7 @@ export default function AnalyticsPage() {
             : null;
 
     const moodTrends =
-        getMoodTrend(events);
+        getMoodTrend(visibleEvents);
 
     return (
         <main className="p-8 max-w-4xl mx-auto">
