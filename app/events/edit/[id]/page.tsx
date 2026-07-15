@@ -53,8 +53,26 @@ export default function EditEventPage() {
                 `/api/events/${params.id}`
             );
 
+            const responseText =
+                await response.text();
+
             const data =
-                await response.json();
+                responseText
+                    ? JSON.parse(responseText)
+                    : null;
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.error ??
+                    "Failed to load event."
+                );
+            }
+
+            if (!data) {
+                throw new Error(
+                    "The event API returned an empty response."
+                );
+            }
 
             setCategory(data.category);
             setValue(data.value);

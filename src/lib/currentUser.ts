@@ -1,25 +1,27 @@
-import { prisma } from "@/src/lib/prisma";
+import { auth } from "@/auth";
 
-const DEMO_USER_EMAIL =
-    "demo@noema.local";
+export class UnauthorizedError
+    extends Error {
+    constructor() {
+        super("Authentication required.");
+        this.name = "UnauthorizedError";
+    }
+}
 
 export async function requireUserId():
     Promise<number> {
-    const user =
-        await prisma.user.findUnique({
-            where: {
-                email: DEMO_USER_EMAIL,
-            },
-            select: {
-                id: true,
-            },
-        });
+    const session =
+        await auth();
 
-    if (!user) {
-        throw new Error(
-            "Demo user not found. Run npm run seed."
-        );
+    const userId =
+        Number(session?.user?.id);
+
+    if (
+        !Number.isInteger(userId) ||
+        userId <= 0
+    ) {
+        throw new UnauthorizedError();
     }
 
-    return user.id;
+    return userId;
 }

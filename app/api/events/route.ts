@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
-import {
-    requireUserId,
-} from "@/src/lib/currentUser";
+import {getApiUserId} from "@/src/lib/apiAuth";
 import {
     serializeEvent,
 } from "@/src/lib/serializeEvent";
@@ -31,8 +29,14 @@ function parseTriggerIds(
 export async function POST(
     request: Request
 ) {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const body =
         await request.json();
@@ -213,8 +217,14 @@ export async function POST(
 }
 
 export async function GET() {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const events =
         await prisma.event.findMany({

@@ -39,10 +39,47 @@ export default function AnalyticsPage() {
 
     useEffect(() => {
         async function loadData() {
-            const response = await fetch("/api/analytics");
-            const data = await response.json();
+            try {
+                const response =
+                    await fetch(
+                        "/api/analytics"
+                    );
 
-            setEvents(data);
+                const data: unknown =
+                    await response.json();
+
+                if (!response.ok) {
+                    const message =
+                        data &&
+                        typeof data === "object" &&
+                        "error" in data &&
+                        typeof data.error === "string"
+                            ? data.error
+                            : "Failed to load analytics.";
+
+                    throw new Error(message);
+                }
+
+                if (!Array.isArray(data)) {
+                    console.error(
+                        "Unexpected /api/analytics response:",
+                        data
+                    );
+
+                    throw new Error(
+                        "Analytics API returned an invalid response."
+                    );
+                }
+
+                setEvents(data);
+            } catch (error) {
+                console.error(
+                    "Could not load analytics:",
+                    error
+                );
+
+                setEvents([]);
+            }
         }
 
         loadData();

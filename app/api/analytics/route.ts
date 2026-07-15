@@ -2,15 +2,21 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
 import {
-    requireUserId,
-} from "@/src/lib/currentUser";
-import {
     serializeEvent,
 } from "@/src/lib/serializeEvent";
+import {
+    getApiUserId,
+} from "@/src/lib/apiAuth";
 
 export async function GET() {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const events =
         await prisma.event.findMany({

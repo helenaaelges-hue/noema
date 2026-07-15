@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from "react";
+import LogoutButton from "@/src/components/auth/LogoutButton";
 
 export default function Home() {
 
@@ -10,13 +11,46 @@ export default function Home() {
   useEffect(() => {
     async function loadEvents() {
 
-      const response =
-        await fetch("/api/events");
+      try {
+        const response =
+          await fetch("/api/events");
 
-      const data =
-        await response.json();
+        const data: unknown =
+          await response.json();
 
-      setEvents(data.slice(0, 5));
+        if (!response.ok) {
+          const message =
+            data &&
+            typeof data === "object" &&
+            "error" in data &&
+            typeof data.error === "string"
+              ? data.error
+              : "Failed to load events.";
+
+          throw new Error(message);
+        }
+
+        if (!Array.isArray(data)) {
+          console.error(
+            "Unexpected /api/events response:",
+            data
+          );
+
+          throw new Error(
+            "Events API returned an invalid response."
+          );
+        }
+
+        setEvents(data.slice(0, 5));
+      } catch (error) {
+        console.error(
+          "Could not load events:",
+          error
+        );
+
+        setEvents([]);
+      }
+
     }
 
     loadEvents();
@@ -53,6 +87,8 @@ export default function Home() {
         >
           Analytics
         </Link>
+
+        <LogoutButton />
       </div>
 
       <div className="mt-12">

@@ -2,12 +2,18 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
 import {
-    requireUserId,
-} from "@/src/lib/currentUser";
+    getApiUserId,
+} from "@/src/lib/apiAuth";
 
 export async function GET() {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const triggers =
         await prisma.trigger.findMany({
@@ -27,8 +33,14 @@ export async function GET() {
 export async function POST(
     request: Request
 ) {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const body =
         await request.json();

@@ -1,12 +1,34 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/src/lib/prisma";
-import {
-    requireUserId,
-} from "@/src/lib/currentUser";
+import {getApiUserId} from "@/src/lib/apiAuth";
 import {
     serializeEvent,
 } from "@/src/lib/serializeEvent";
+
+type RouteContext = {
+    params: Promise<{
+        id: string;
+    }>;
+};
+
+async function parseEventId(
+    params: RouteContext["params"]
+): Promise<number | null> {
+    const {id} = await params;
+
+    const eventId =
+        Number(id);
+
+    if (
+        !Number.isInteger(eventId) ||
+        eventId <= 0
+    ) {
+        return null;
+    }
+
+    return eventId;
+}
 
 function parseTriggerIds(
     value: unknown
@@ -29,23 +51,34 @@ function parseTriggerIds(
 }
 
 export async function GET(
-    request: Request,
-    {
-        params,
-    }: {
-        params: Promise<{
-            id: string;
-        }>;
-    }
+        request: Request,
+        { params }: RouteContext
 ) {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const { id } =
         await params;
 
     const eventId =
-        Number(id);
+        await parseEventId(params);
+
+    if (eventId === null) {
+        return NextResponse.json(
+            {
+                error: "Invalid event ID.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
 
     const event =
         await prisma.event.findFirst({
@@ -83,22 +116,33 @@ export async function GET(
 
 export async function PUT(
     request: Request,
-    {
-        params,
-    }: {
-        params: Promise<{
-            id: string;
-        }>;
-    }
+    {params}: RouteContext
 ) {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const { id } =
         await params;
 
     const eventId =
-        Number(id);
+        await parseEventId(params);
+
+    if (eventId === null) {
+        return NextResponse.json(
+            {
+                error: "Invalid event ID.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
 
     const existingEvent =
         await prisma.event.findFirst({
@@ -326,23 +370,34 @@ export async function PUT(
 }
 
 export async function DELETE(
-    request: Request,
-    {
-        params,
-    }: {
-        params: Promise<{
-            id: string;
-        }>;
-    }
+        request: Request,
+        {params}: RouteContext
 ) {
-    const userId =
-        await requireUserId();
+    const {
+        userId,
+        response,
+    } = await getApiUserId();
+
+    if (response) {
+        return response;
+    }
 
     const { id } =
         await params;
 
     const eventId =
-        Number(id);
+        await parseEventId(params);
+
+    if (eventId === null) {
+        return NextResponse.json(
+            {
+                error: "Invalid event ID.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
 
     const event =
         await prisma.event.findFirst({
