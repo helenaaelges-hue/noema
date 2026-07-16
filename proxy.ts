@@ -53,6 +53,7 @@ export const config = {
         "/",
         "/analytics/:path*",
         "/events/:path*",
+        "/events-list/:path*",
         "/categories/:path*",
         "/triggers/:path*",
     ],

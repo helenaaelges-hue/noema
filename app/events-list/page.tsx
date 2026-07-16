@@ -22,12 +22,49 @@ type Event = {
 export default function EventsListPage() {
     const [events, setEvents] = useState<Event[]>([]);
     const [search, setSearch] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         async function loadEvents() {
-            const response = await fetch("/api/events");
-            const data = await response.json();
-            setEvents(data);
+            try {
+                setLoading(true);
+                setError("");
+            
+                const response = await fetch("/api/events");
+
+                const data: unknown = await response.json();
+
+                if (!response.ok) {
+                    const message =
+                        data &&
+                        typeof data === "object" &&
+                        "error" in data &&
+                        typeof data.error === "string"
+                            ? data.error
+                            : "Failed to load events.";
+
+                    throw new Error(message);
+                }
+
+                if (!Array.isArray(data)) {
+                    throw new Error(
+                        "The events API returned an invalid response."
+                    );
+                }
+
+                setEvents(data);
+            } catch (loadError) {
+                setEvents([]);
+
+                setError(
+                    loadError instanceof Error
+                        ? loadError.message
+                        : "Failed to load events."
+                );
+            } finally {
+                setLoading(false);
+            }
         }
 
         loadEvents();
@@ -54,6 +91,27 @@ export default function EventsListPage() {
                 )
             );
         }
+    }
+
+    if (loading) {
+        return (
+            <main className="p-8 max-w-4xl mx-auto">
+                <p>Loading events...</p>
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main className="p-8 max-w-4xl mx-auto">
+                <p
+                    role="alert"
+                    className="text-red-700"
+                >
+                    {error}
+                </p>
+            </main>
+        );
     }
 
     const filteredEvents = events.filter((event) => {

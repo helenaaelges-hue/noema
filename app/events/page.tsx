@@ -31,67 +31,132 @@ export default function EventsPage() {
     const [eventDate, setEventDate] = useState(localDateTime);
 
     async function addCategory() {
-        if (!newCategory.trim()) return;
+        const name =
+            newCategory.trim();
 
-        const response = await fetch(
-            "/api/categories",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json",
-                },
-                body: JSON.stringify({
-                    name: newCategory,
-                }),
-            }
+        if (!name) {
+            return;
+        }
+
+        const response =
+            await fetch(
+                "/api/categories",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        name,
+                    }),
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            alert(
+                data.error ??
+                "Failed to create category."
+            );
+            return;
+        }
+
+        const createdCategory: {
+            id: number;
+            name: string;
+        } = data;
+
+        setCategories(current =>
+            [
+                ...current,
+                createdCategory,
+            ].sort((a, b) =>
+                a.name.localeCompare(
+                    b.name,
+                    undefined,
+                    {
+                        sensitivity: "base",
+                    }
+                )
+            )
         );
 
-        if (response.ok) {
-            const created =
-                await response.json();
+        setCategory(
+            createdCategory.name
+        );
 
-            setCategories([
-                ...categories,
-                created,
-            ]);
-
-            setNewCategory("");
-            setShowCategoryForm(false);
-        }
+        setNewCategory("");
+        setShowCategoryForm(false);
     }
 
     async function addTrigger() {
-        if (!newTrigger.trim()) return;
+        const name =
+            newTrigger.trim();
 
-        const response = await fetch(
-            "/api/triggers",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json",
-                },
-                body: JSON.stringify({
-                    name: newTrigger,
-                }),
-            }
-        );
+        if (!name) {
+            return;
+        }
 
-        if (response.ok) {
-            const created =
-                await response.json();
-
-            setTriggers(
-                [...triggers, created].sort(
-                    (a, b) =>
-                        a.name.localeCompare(b.name)
-                )
+        const response =
+            await fetch(
+                "/api/triggers",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        name,
+                    }),
+                }
             );
 
-            setNewTrigger("");
-            setShowTriggerForm(false);
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            alert(
+                data.error ??
+                "Failed to create trigger."
+            );
+            return;
         }
+
+        const createdTrigger: {
+            id: number;
+            name: string;
+        } = data;
+
+        setTriggers(current =>
+            [
+                ...current,
+                createdTrigger,
+            ].sort((a, b) =>
+                a.name.localeCompare(
+                    b.name,
+                    undefined,
+                    {
+                        sensitivity: "base",
+                    }
+                )
+            )
+        );
+
+        setSelectedTriggers(current =>
+            Array.from(
+                new Set([
+                    ...current,
+                    createdTrigger.id,
+                ])
+            )
+        );
+
+        setNewTrigger("");
+        setShowTriggerForm(false);
     }
 
     async function saveEvent() {
@@ -160,6 +225,15 @@ export default function EventsPage() {
 
             loadTriggers();
     }, []);
+
+    useEffect(() => {
+        if (
+            category &&
+            category !== "Mood"
+        ) {
+            setMoodScore("");
+        }
+    }, [category]);
 
 
     return (
@@ -256,7 +330,7 @@ export default function EventsPage() {
 
                 {category === "Mood" && (
                     <div>
-                        <label>Mood Score (0-10)</label>
+                        <label>Mood Score (1-10)</label>
                         
                         <input
                             type="number"

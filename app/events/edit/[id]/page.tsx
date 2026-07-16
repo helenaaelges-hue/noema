@@ -301,10 +301,6 @@ export default function EditEventPage() {
                             category,
                             value:
                                 value.trim(),
-
-                            /*
-                             * `category` is already a string.
-                             */
                             moodScore:
                                 category === "Mood"
                                     ? moodScore
