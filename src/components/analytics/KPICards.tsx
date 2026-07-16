@@ -5,19 +5,17 @@ type Props = {
         value: number;
     };
     bestTrigger: string;
-    topInsight: string;
 };
 
 export default function KPICards({
     averageMood,
     moodTrend,
     bestTrigger,
-    topInsight,
 }: Props) {
 
     return (
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-8">
+        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4 mb-8">
             <div className="rounded-xl border p-5">
                 <p className="text-sm text-gray-500">
                     Average Mood
@@ -50,16 +48,6 @@ export default function KPICards({
 
                 <p className="text-xl font-semibold">
                     {bestTrigger ?? "-"}
-                </p>
-            </div>
-
-            <div className="rounded-xl border p-5">
-                <p className="text-sm text-gray-500">
-                    Strongest Insight
-                </p>
-
-                <p className="font-medium">
-                    {topInsight ?? "-"}
                 </p>
             </div>
         </div>

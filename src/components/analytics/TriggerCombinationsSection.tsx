@@ -21,7 +21,7 @@ export default function TriggerCombinationsSection({
 }: Props) {
     return (
         <Accordion
-            title="Trigger Combinations"
+            title="Trigger Pair Associations"
         >
             {combinations.length === 0 ? (
                 <p>

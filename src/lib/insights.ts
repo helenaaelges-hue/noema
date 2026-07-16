@@ -139,7 +139,7 @@ export function getTriggerMoodAverages(
 
 export function confidenceLabel(
     entries: number
-) {
+): "Low" | "Moderate" | "High" {
     if (entries >= 30) {
         return "High";
     }

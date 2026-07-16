@@ -3,7 +3,7 @@ import ConfidenceBadge from "./ConfidenceBadge";
 type Props = {
     title: string;
     description: string;
-    confidence: "Low" | "Medium" | "High";
+    confidence: "Low" | "Moderate" | "High";
     impact: number;
 };
 

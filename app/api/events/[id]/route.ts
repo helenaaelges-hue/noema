@@ -13,9 +13,9 @@ type RouteContext = {
 };
 
 async function parseEventId(
-    params: RouteContext["params"]
+    context: RouteContext
 ): Promise<number | null> {
-    const {id} = await params;
+    const {id} = await context.params;
 
     const eventId =
         Number(id);
@@ -51,8 +51,8 @@ function parseTriggerIds(
 }
 
 export async function GET(
-        request: Request,
-        { params }: RouteContext
+       request: Request,
+       context: RouteContext
 ) {
     const {
         userId,
@@ -63,11 +63,8 @@ export async function GET(
         return response;
     }
 
-    const { id } =
-        await params;
-
     const eventId =
-        await parseEventId(params);
+        await parseEventId(context);
 
     if (eventId === null) {
         return NextResponse.json(
@@ -116,7 +113,7 @@ export async function GET(
 
 export async function PUT(
     request: Request,
-    {params}: RouteContext
+    context: RouteContext
 ) {
     const {
         userId,
@@ -127,11 +124,8 @@ export async function PUT(
         return response;
     }
 
-    const { id } =
-        await params;
-
     const eventId =
-        await parseEventId(params);
+        await parseEventId(context);
 
     if (eventId === null) {
         return NextResponse.json(
@@ -240,6 +234,45 @@ export async function PUT(
         );
     }
 
+    const normalizedMoodScore =
+        category.name === "Mood"
+            ? moodScore
+            : null;
+
+    if (
+        category.name === "Mood" &&
+        normalizedMoodScore === null
+    ) {
+        return NextResponse.json(
+            {
+                error: "A mood score is required for mood events.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    if (
+        normalizedMoodScore !== null &&
+        (
+            !Number.isInteger(
+                normalizedMoodScore
+            ) ||
+            normalizedMoodScore < 1 ||
+            normalizedMoodScore > 10
+        )
+    ) {
+        return NextResponse.json(
+            {
+                error: "Mood score must be a whole number from 1 to 10.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
     const eventDate =
         new Date(
             body.eventDate
@@ -316,7 +349,8 @@ export async function PUT(
                         categoryId:
                             category.id,
                         value,
-                        moodScore,
+                        moodScore:
+                            normalizedMoodScore,
                         notes:
                             typeof body.notes ===
                                 "string" &&
@@ -370,8 +404,8 @@ export async function PUT(
 }
 
 export async function DELETE(
-        request: Request,
-        {params}: RouteContext
+    request: Request,    
+    context: RouteContext
 ) {
     const {
         userId,
@@ -382,11 +416,8 @@ export async function DELETE(
         return response;
     }
 
-    const { id } =
-        await params;
-
     const eventId =
-        await parseEventId(params);
+        await parseEventId(context);
 
     if (eventId === null) {
         return NextResponse.json(

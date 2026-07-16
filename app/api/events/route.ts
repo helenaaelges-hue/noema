@@ -92,12 +92,32 @@ export async function POST(
             ? null
             : Number(body.moodScore);
 
+    const normalizedMoodScore =
+        category.name === "Mood"
+            ? moodScore
+            : null;
+
     if (
-        moodScore !== null &&
+        category.name === "Mood" &&
+        normalizedMoodScore === null
+    ) {
+        return NextResponse.json(
+            {
+                error:
+                    "A mood score is required for mood events.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    if (
+        normalizedMoodScore !== null &&
         (
-            !Number.isInteger(moodScore) ||
-            moodScore < 1 ||
-            moodScore > 10
+            !Number.isInteger(normalizedMoodScore) ||
+            normalizedMoodScore < 1 ||
+            normalizedMoodScore > 10
         )
     ) {
         return NextResponse.json(
@@ -174,7 +194,8 @@ export async function POST(
                 categoryId:
                     category.id,
                 value,
-                moodScore,
+                moodScore:
+                    normalizedMoodScore,
                 notes:
                     typeof body.notes ===
                         "string" &&

@@ -9,7 +9,7 @@ import {
 export type Insight = {
     title: string;
     description: string;
-    confidence: "Low" | "Medium" | "High";
+    confidence: "Low" | "Moderate" | "High";
     impact: number;
     strength: number;
     score: number;
@@ -33,22 +33,6 @@ export function generateInsights(
             triggerData.filter(
                 t => t.entries < 5
             );
-
-        if (weakTriggers.length > 0) {
-            insights.push({
-                title: "Collect More Data",
-                description:
-                    `${weakTriggers.length} trigger${
-                        weakTriggers.length === 1
-                            ? ""
-                            : "s"
-                    } still need more observation before reliable conclusions can be drawn.`,
-                confidence: "Low",
-                impact: 0,
-                strength: 0,
-                score: 0,
-            });
-        }
 
         if (
             Math.abs(best.difference) >= 1
@@ -248,13 +232,13 @@ export function generateInsights(
 
 function confidence(
     entries: number
-): "Low" | "Medium" | "High" {
+): "Low" | "Moderate" | "High" {
 
     if (entries >= 20)
         return "High";
 
     if (entries >= 8)
-        return "Medium";
+        return "Moderate";
 
     return "Low";
 }

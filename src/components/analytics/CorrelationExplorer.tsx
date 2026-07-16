@@ -1,18 +1,13 @@
 import Accordion from "../Accordion";
 
-type Category = string;
-
 type Trigger = {
     id: number;
     name: string;
 };
 
 type Props = {
-    categories: Category[];
     triggers: Trigger[];
-    selectedCategory: string;
     selectedTrigger: number | null;
-    onCategoryChange: (category: string) => void;
     onTriggerChange: (trigger: number | null) => void;
     filteredEvents: unknown[];
     selectionAverage: number | null;
@@ -20,38 +15,19 @@ type Props = {
 };
 
 export default function CorrelationExplorer({
-    categories,
     triggers,
-    selectedCategory,
     selectedTrigger,
-    onCategoryChange,
     onTriggerChange,
     filteredEvents,
     selectionAverage,
     difference,
 }: Props) {
     return (
-        <Accordion title="Correlation Explorer">
-            <select
-                className="border p-2 w-full mb-4"
-                value={selectedCategory}
-                onChange={(e)=>
-                    onCategoryChange(e.target.value)
-                }
-            >
-                <option value="">
-                    All Categories
-                </option>
+        <Accordion title="Trigger Explorer">
 
-                {categories.map((category)=>(
-                    <option
-                        key={category}
-                        value={category}
-                    >
-                        {category}
-                    </option>
-                ))}
-            </select>
+            <p className="text-sm text-gray-600">
+                Compare your overall average mood with your average mood when a selected trigger occurred.
+            </p>
 
             <select
                 className="border p-2 w-full mb-4"

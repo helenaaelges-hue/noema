@@ -33,7 +33,6 @@ import {getMoodTrend} from "@/src/lib/trends";
 
 export default function AnalyticsPage() {
     const [events, setEvents] = useState<any[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedTrigger, setSelectedTrigger] = useState<number | null>(null);
     const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
@@ -196,13 +195,6 @@ export default function AnalyticsPage() {
             ).trigger
             : "None";
 
-    const categories =
-        Array.from(
-            new Set(
-                events.map((e) => e.category)
-            )
-        );
-
     const triggers =
         Array.from(
             new Map(
@@ -216,10 +208,20 @@ export default function AnalyticsPage() {
         );
 
     const filteredEvents =
-        filterEvents(
-            visibleEvents,
-            selectedCategory,
-            selectedTrigger
+        visibleEvents.filter(
+            event =>
+                event.category === "Mood" &&
+                event.moodScore !== null &&
+                (
+                    selectedTrigger === null ||
+                    event.triggers.some(
+                        eventTrigger =>
+                            eventTrigger
+                                .trigger
+                                .id ===
+                            selectedTrigger
+                    )
+                )
         );
 
     const selectionAverage =
@@ -236,11 +238,6 @@ export default function AnalyticsPage() {
 
     const triggerCombinations =
         getTriggerCombinations(visibleEvents);
-
-    const topInsight =
-        insights.length > 0
-            ? insights[0]
-            : null;
 
     const moodTrends =
         getMoodTrend(visibleEvents);
@@ -268,19 +265,6 @@ export default function AnalyticsPage() {
                 averageMood={averageMood}
                 moodTrend={moodTrends}
                 bestTrigger={bestTrigger?.trigger ?? "-"}
-                topInsight={topInsight?.title ?? "-"}
-            />
-
-            <CorrelationExplorer
-                categories={categories}
-                triggers={triggers}
-                selectedCategory={selectedCategory}
-                selectedTrigger={selectedTrigger}
-                onCategoryChange={setSelectedCategory}
-                onTriggerChange={setSelectedTrigger}
-                filteredEvents={filteredEvents}
-                selectionAverage={selectionAverage}
-                difference={difference}
             />
 
             <InsightsLegend />
@@ -295,6 +279,15 @@ export default function AnalyticsPage() {
                 totalMoodEntries={totalMoodEntries}
                 topTrigger={topTrigger}
                 latestMood={latestMood}
+            />
+
+            <CorrelationExplorer
+                triggers={triggers}
+                selectedTrigger={selectedTrigger}
+                onTriggerChange={setSelectedTrigger}
+                filteredEvents={filteredEvents}
+                selectionAverage={selectionAverage}
+                difference={difference}
             />
 
             <TriggerCombinationsSection
