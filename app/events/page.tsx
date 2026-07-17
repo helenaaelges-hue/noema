@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from "react";
 import Link from "next/link";
+import {sortByName} from "@/src/lib/names";
 
 export default function EventsPage() {
     const [category, setCategory] = useState("");
@@ -19,6 +20,8 @@ export default function EventsPage() {
     const [newTrigger, setNewTrigger] = useState("");
     const [showTriggerForm, setShowTriggerForm] = useState(false);
     const [notes, setNotes] = useState("");
+    const [showCategoryManager, setShowCategoryManager] = useState(false);
+    const [showTriggerManager, setShowTriggerManager] = useState(false);
     const now = new Date();
     const localDateTime =
         new Date(
@@ -70,18 +73,10 @@ export default function EventsPage() {
         } = data;
 
         setCategories(current =>
-            [
+            sortByName([
                 ...current,
                 createdCategory,
-            ].sort((a, b) =>
-                a.name.localeCompare(
-                    b.name,
-                    undefined,
-                    {
-                        sensitivity: "base",
-                    }
-                )
-            )
+            ])
         );
 
         setCategory(
@@ -90,6 +85,56 @@ export default function EventsPage() {
 
         setNewCategory("");
         setShowCategoryForm(false);
+    }
+
+    async function deleteCategory(
+        categoryToDelete: {
+            id: number;
+            name: string;
+        }
+    ) {
+        const confirmed =
+            window.confirm(
+                `Delete category "${categoryToDelete.name}"?`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const response =
+            await fetch(
+                `/api/categories/${categoryToDelete.id}`,
+                {
+                    method: "DELETE",
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            alert(
+                data.error ??
+                "Failed to delete category."
+            );
+            return;
+        }
+
+        setCategories(current =>
+            current.filter(
+                item =>
+                    item.id !==
+                    categoryToDelete.id
+            )
+        );
+
+        if (
+            category ===
+            categoryToDelete.name
+        ) {
+            setCategory("");
+        }
     }
 
     async function addTrigger() {
@@ -132,18 +177,10 @@ export default function EventsPage() {
         } = data;
 
         setTriggers(current =>
-            [
+            sortByName([
                 ...current,
                 createdTrigger,
-            ].sort((a, b) =>
-                a.name.localeCompare(
-                    b.name,
-                    undefined,
-                    {
-                        sensitivity: "base",
-                    }
-                )
-            )
+            ])
         );
 
         setSelectedTriggers(current =>
@@ -157,6 +194,57 @@ export default function EventsPage() {
 
         setNewTrigger("");
         setShowTriggerForm(false);
+    }
+
+    async function deleteTrigger(
+        triggerToDelete: {
+            id: number;
+            name: string;
+        }
+    ) {
+        const confirmed =
+            window.confirm(
+                `Delete trigger "${triggerToDelete.name}"?`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const response =
+            await fetch(
+                `/api/triggers/${triggerToDelete.id}`,
+                {
+                    method: "DELETE",
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            alert(
+                data.error ??
+                "Failed to delete trigger."
+            );
+            return;
+        }
+
+        setTriggers(current =>
+            current.filter(
+                item =>
+                    item.id !==
+                    triggerToDelete.id
+            )
+        );
+
+        setSelectedTriggers(current =>
+            current.filter(
+                id =>
+                    id !==
+                    triggerToDelete.id
+            )
+        );
     }
 
     async function saveEvent() {
@@ -291,6 +379,49 @@ export default function EventsPage() {
                         + New Category
                     </button>
 
+                    <button
+                        type="button"
+                        className="mt-2 ml-4 text-sm underline"
+                        onClick={() =>
+                            setShowCategoryManager(
+                                current => !current
+                            )
+                        }
+                    >
+                        Manage Categories
+                    </button>
+
+                    {showCategoryManager && (
+                        <div className="mt-3 space-y-2 rounded border p-3">
+                            {categories.map(
+                                categoryItem => (
+                                    <div
+                                        key={
+                                            categoryItem.id
+                                        }
+                                        className="flex items-center justify-between gap-4"
+                                    >
+                                        <span>
+                                            {categoryItem.name}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            className="text-sm text-red-700 underline"
+                                            onClick={() =>
+                                                deleteCategory(
+                                                    categoryItem
+                                                )
+                                            }
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
+
                     {showCategoryForm && (
                         <div className="mt-3">
                             <input
@@ -384,6 +515,49 @@ export default function EventsPage() {
                     >
                         + New Trigger
                     </button>
+
+                    <button
+                        type="button"
+                        className="mt-2 ml-4 text-sm underline"
+                        onClick={() =>
+                            setShowTriggerManager(
+                                current => !current
+                            )
+                        }
+                    >
+                        Manage triggers
+                    </button>
+
+                    {showTriggerManager && (
+                        <div className="mt-3 space-y-2 rounded border p-3">
+                            {triggers.map(
+                                triggerItem => (
+                                    <div
+                                        key={
+                                            triggerItem.id
+                                        }
+                                        className="flex items-center justify-between gap-4"
+                                    >
+                                        <span>
+                                            {triggerItem.name}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            className="text-sm text-red-700 underline"
+                                            onClick={() =>
+                                                deleteTrigger(
+                                                    triggerItem
+                                                )
+                                            }
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
 
                     {showTriggerForm && (
                         <div className="mt-3">

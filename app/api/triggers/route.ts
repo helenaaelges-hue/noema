@@ -4,6 +4,7 @@ import { prisma } from "@/src/lib/prisma";
 import {
     getApiUserId,
 } from "@/src/lib/apiAuth";
+import {cleanDisplayName, normalizeName} from "@/src/lib/names";
 
 export async function GET() {
     const {
@@ -47,7 +48,9 @@ export async function POST(
 
     const name =
         typeof body.name === "string"
-            ? body.name.trim()
+            ? cleanDisplayName(
+                body.name
+            )
             : "";
 
     if (!name) {
@@ -62,16 +65,41 @@ export async function POST(
         );
     }
 
-    const trigger =
-        await prisma.trigger.upsert({
+    const existingTriggers =
+        await prisma.trigger.findMany({
             where: {
-                userId_name: {
-                    userId,
-                    name,
-                },
+                userId,
             },
-            update: {},
-            create: {
+            select: {
+                id: true,
+                name: true,
+            },
+        });
+
+    const duplicate =
+        existingTriggers.find(
+            trigger =>
+                normalizeName(
+                    trigger.name
+                ) ===
+                normalizeName(name)
+        );
+
+    if (duplicate) {
+        return NextResponse.json(
+            {
+                error:
+                    `A trigger named "${duplicate.name}" already exists.`,
+            },
+            {
+                status: 409,
+            }
+        );
+    }
+
+    const trigger =
+        await prisma.trigger.create({
+            data: {
                 userId,
                 name,
             },

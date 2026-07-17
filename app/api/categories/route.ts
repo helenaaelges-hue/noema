@@ -1,6 +1,7 @@
 import {prisma} from "@/src/lib/prisma";
 import {NextResponse} from "next/server";
 import {getApiUserId} from "@/src/lib/apiAuth";
+import {cleanDisplayName, normalizeName} from "@/src/lib/names";
 
 export async function GET() {
     const {
@@ -39,7 +40,9 @@ export async function POST(request: Request) {
 
     const name =
         typeof body.name === "string"
-            ? body.name.trim()
+            ? cleanDisplayName(
+                body.name
+            )
             : "";
 
     if (!name) {
@@ -54,16 +57,41 @@ export async function POST(request: Request) {
         );
     }
 
-    const category =
-        await prisma.category.upsert({
+    const existingCategories =
+        await prisma.category.findMany({
             where: {
-                userId_name: {
-                    userId,
-                    name,
-                },
+                userId,
             },
-            update: {},
-            create: {
+            select: {
+                id: true,
+                name: true,
+            },
+        });
+
+    const duplicate =
+        existingCategories.find(
+            category =>
+                normalizeName(
+                    category.name
+                ) ===
+                normalizeName(name)
+        );
+
+    if (duplicate) {
+        return NextResponse.json(
+            {
+                error:
+                    `A category named "${duplicate.name}" already exists.`,
+            },
+            {
+                status: 409,
+            }
+        );
+    }
+
+    const category =
+        await prisma.category.create({
+            data: {
                 userId,
                 name,
             },
