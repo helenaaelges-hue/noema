@@ -19,6 +19,16 @@ export default function TriggerCombinationsSection({
     combinations,
     confidenceLabel,
 }: Props) {
+    if (combinations.length === 0) {
+        return (
+            <Accordion title="Trigger Pair Associations">
+                <p className="text-gray-600">
+                    No trigger pairs occurred together often enough during this period.
+                </p>
+            </Accordion>
+        );
+    }
+
     return (
         <Accordion
             title="Trigger Pair Associations"

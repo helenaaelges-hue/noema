@@ -9,6 +9,15 @@ type Props = {
 export default function InsightsSection({
     insights,
 }: Props) {
+    if (insights.length === 0) {
+        return (
+            <Accordion title="💡 Did You Know?">
+                <p className="text-gray-600">
+                    Not enough mood data is available to generate reliable insights yet.
+                </p>
+            </Accordion>
+        );
+    }
     return (
         <Accordion
             title="💡 Did You Know?"

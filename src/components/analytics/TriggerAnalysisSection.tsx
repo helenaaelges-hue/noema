@@ -25,7 +25,20 @@ export default function TriggerAnalysisSection({
     worstTrigger,
     confidenceLabel,
 }: Props) {
+    if (
+            triggerMoodAverages.length === 0
+        ) {
+            return (
+                <Accordion title="Trigger Analysis">
+                    <p className="text-gray-600">
+                        No trigger-linked mood entries are available for this period.
+                    </p>
+                </Accordion>
+            );
+        }
+        
     return (
+
         <Accordion
             title="Trigger Analysis"
         >

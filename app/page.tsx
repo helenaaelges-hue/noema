@@ -3,13 +3,18 @@
 import Link from 'next/link';
 import { useEffect, useState } from "react";
 import LogoutButton from "@/src/components/auth/LogoutButton";
+import {EmptyState, ErrorState, LoadingState} from "@/src/components/ui/PageState";
 
 export default function Home() {
 
   const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function loadEvents() {
+      setLoading(true);
+      setError("");
 
       try {
         const response =
@@ -31,30 +36,26 @@ export default function Home() {
         }
 
         if (!Array.isArray(data)) {
-          console.error(
-            "Unexpected /api/events response:",
-            data
-          );
-
           throw new Error(
-            "Events API returned an invalid response."
+            "The events API returned an invalid response.",
           );
         }
 
         setEvents(data.slice(0, 5));
-      } catch (error) {
-        console.error(
-          "Could not load events:",
-          error
-        );
+      } catch (loadError) {
+          setEvents([]);
 
-        setEvents([]);
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Failed to load events."
+          );
+      } finally {
+        setLoading(false);
       }
-
     }
 
     loadEvents();
-
   }, []);
 
   return (
@@ -91,34 +92,48 @@ export default function Home() {
         <LogoutButton />
       </div>
 
-      <div className="mt-12">
-        <h2 className="text-2xl font-semibold mb-4">
-          Recent Events
-        </h2>
+      {loading ? (
+        <LoadingState message="Loading recent events..." />
+      ) : error ? (
+        <ErrorState message={error} />
+      ) : events.length === 0 ? (
+        <EmptyState
+          title="No events yet"
+          description="Record your first event to start building your personal timeline."
+          actionHref="/events"
+          actionLabel="Record an event"
+        />
+      ) : (
 
-        {events.map((event) => (
+        <div className="mt-12">
+          <h2 className="text-2xl font-semibold mb-4">
+            Recent Events
+          </h2>
 
-          <div
-            key={event.id}
-            className="border rounded p-3 mb-2"
-          >
+          {events.map((event) => (
 
-            <strong>
-              {event.category}
-            </strong>
+            <div
+              key={event.id}
+              className="border rounded p-3 mb-2"
+            >
 
-            <p>
-              {event.value}
-            </p>
+              <strong>
+                {event.category}
+              </strong>
 
-            <small>
-              {new Date(
-                event.eventDate
-              ).toLocaleString()}
-            </small>
-          </div>
-        ))}
-      </div>
+              <p>
+                {event.value}
+              </p>
+
+              <small>
+                {new Date(
+                  event.eventDate
+                ).toLocaleString()}
+              </small>
+            </div>
+          ))}
+        </div>
+      )}
 
     </main>
   );

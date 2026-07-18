@@ -23,11 +23,12 @@ import {getAverageMood, getLatestMood, getCategoryCounts, getTriggerMoodAverages
 import {getMoodPerTrigger, getOverallAverageMood} from "@/src/lib/correlations";
 import {getSelectionAverageMood, moodDifferenceFromBaseLine} from "@/src/lib/selectionAnalytics";
 import {filterByTimeRange, TimeRange} from "@/src/lib/timeFilter";
-import {filterEvents} from "@/src/lib/correlationExplorer";
 import {generateInsights} from "@/src/lib/generateInsights";
 import {getTriggerCombinations} from "@/src/lib/combinations";
 import {movingAverage} from "@/src/lib/movingAverage";
 import {getMoodTrend} from "@/src/lib/trends";
+
+import {EmptyState, ErrorState, LoadingState} from "@/src/components/ui/PageState";
 
 
 
@@ -35,9 +36,14 @@ export default function AnalyticsPage() {
     const [events, setEvents] = useState<any[]>([]);
     const [selectedTrigger, setSelectedTrigger] = useState<number | null>(null);
     const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         async function loadData() {
+            setLoading(true);
+            setError("");
+
             try {
                 const response =
                     await fetch(
@@ -60,24 +66,22 @@ export default function AnalyticsPage() {
                 }
 
                 if (!Array.isArray(data)) {
-                    console.error(
-                        "Unexpected /api/analytics response:",
-                        data
-                    );
-
                     throw new Error(
-                        "Analytics API returned an invalid response."
+                        "The analytics API returned an invalid response."
                     );
                 }
 
                 setEvents(data);
-            } catch (error) {
-                console.error(
-                    "Could not load analytics:",
-                    error
-                );
-
+            } catch (loadError) {
                 setEvents([]);
+
+                setError(
+                    loadError instanceof Error
+                        ? loadError.message
+                        : "Failed to load analytics."
+                );
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -256,61 +260,96 @@ export default function AnalyticsPage() {
                 Mood trends based on recorded events.
             </p>
 
-            <TimeRangeSelector
-                value={timeRange}
-                onChange={setTimeRange}
-            />
+            {loading ? (
+                <LoadingState message="Calculating your analytics..." />
+            ) : error ? (
+                <ErrorState message={error} />
+            ) : events.length === 0 ? (
+                <EmptyState
+                    title="No analytics yet"
+                    description="Record some events to begin building your analytics dashboard."
+                    actionHref="/events"
+                    actionLabel="Record an event"
+                />
+            ) : (
+                <>
+                <TimeRangeSelector
+                    value={timeRange}
+                    onChange={setTimeRange}
+                />
 
-            <KPICards
-                averageMood={averageMood}
-                moodTrend={moodTrends}
-                bestTrigger={bestTrigger?.trigger ?? "-"}
-            />
+                {visibleEvents.length === 0 ? (
+                    <EmptyState
+                        title="No data for this period"
+                        description="There are no recorded events within the selected time range."
+                    />
+                ) : (
+                    <>
+                        <KPICards
+                            averageMood={averageMood}
+                            moodTrend={moodTrends}
+                            bestTrigger={bestTrigger?.trigger ?? "-"}
+                        />
 
-            <InsightsLegend />
+                        <OverviewSection
+                            totalEvents={totalEvents}
+                            averageMood={averageMood}
+                            totalMoodEntries={totalMoodEntries}
+                            topTrigger={topTrigger}
+                            latestMood={latestMood}
+                        />
 
-            <InsightsSection
-                insights={insights}
-            />
+                        <CategoryAnalysisSection
+                            categoryCounts={categoryCounts}
+                        />
 
-            <OverviewSection
-                totalEvents={totalEvents}
-                averageMood={averageMood}
-                totalMoodEntries={totalMoodEntries}
-                topTrigger={topTrigger}
-                latestMood={latestMood}
-            />
+                        {totalMoodEntries === 0 ? (
+                            <EmptyState
+                                title="No mood data yet"
+                                description="Record mood events to unlock trends, trigger associations, and personalized insights."
+                                actionHref="/events"
+                                actionLabel="Record a mood event"
+                            />
+                        ) : (
+                            <>
+                                <InsightsLegend />
 
-            <CorrelationExplorer
-                triggers={triggers}
-                selectedTrigger={selectedTrigger}
-                onTriggerChange={setSelectedTrigger}
-                filteredEvents={filteredEvents}
-                selectionAverage={selectionAverage}
-                difference={difference}
-            />
+                                <InsightsSection
+                                    insights={insights}
+                                />
 
-            <TriggerCombinationsSection
-                combinations={triggerCombinations}
-                confidenceLabel={confidenceLabel}
-            />
+                                <CorrelationExplorer
+                                    triggers={triggers}
+                                    selectedTrigger={selectedTrigger}
+                                    onTriggerChange={setSelectedTrigger}
+                                    filteredEvents={filteredEvents}
+                                    selectionAverage={selectionAverage}
+                                    difference={difference}
+                                />
 
-            <TriggerAnalysisSection
-                triggerMoodAverages={triggerMoodAverages}
-                overallAverage={overallAverage}
-                bestTrigger={bestTrigger}
-                worstTrigger={worstTrigger}
-                confidenceLabel={confidenceLabel}
-            />
+                                <TriggerCombinationsSection
+                                    combinations={triggerCombinations}
+                                    confidenceLabel={confidenceLabel}
+                                />
 
-            <CategoryAnalysisSection
-                categoryCounts={categoryCounts}
-            />
+                                <TriggerAnalysisSection
+                                    triggerMoodAverages={triggerMoodAverages}
+                                    overallAverage={overallAverage}
+                                    bestTrigger={bestTrigger}
+                                    worstTrigger={worstTrigger}
+                                    confidenceLabel={confidenceLabel}
+                                />
 
-            <MoodSection
-                moodData={moodData}
-                moodDistribution={moodDistribution}
-            />
+                                <MoodSection
+                                    moodData={moodData}
+                                    moodDistribution={moodDistribution}
+                                />
+                            </>
+                        )}
+                    </>
+                )}
+                </>
+            )}
         </main>
     );
 }

@@ -2,6 +2,7 @@
 
 import {useEffect, useState} from "react";
 import Link from "next/link";
+import {EmptyState, ErrorState, LoadingState} from "@/src/components/ui/PageState";
 
 type Event = {
     id: number;
@@ -27,13 +28,28 @@ export default function EventsListPage() {
 
     useEffect(() => {
         async function loadEvents() {
-            try {
-                setLoading(true);
-                setError("");
-            
-                const response = await fetch("/api/events");
+            setLoading(true);
+            setError("");
 
-                const data: unknown = await response.json();
+            try {
+                const response =
+                    await fetch("/api/events");
+
+                const text =
+                    await response.text();
+
+                let data: unknown = null;
+
+                if (text) {
+                    try {
+                        data =
+                            JSON.parse(text);
+                    } catch {
+                        throw new Error(
+                            "The events API returned invalid JSON."
+                        );
+                    }
+                }
 
                 if (!response.ok) {
                     const message =
@@ -114,6 +130,26 @@ export default function EventsListPage() {
         );
     }
 
+    if (loading) {
+        return (
+            <main className="p-8 max-w-4xl mx-auto">
+                <LoadingState
+                    message="Loading events..."
+                />
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main className="p-8 max-w-4xl mx-auto">
+                <ErrorState
+                    message={error}
+                />
+            </main>
+        );
+    }
+
     const filteredEvents = events.filter((event) => {
         const query = search.toLowerCase();
 
@@ -148,8 +184,18 @@ export default function EventsListPage() {
                 onChange={(e) => setSearch(e.target.value)}
             />
 
-            {filteredEvents.length === 0 ? (
-                <p>No events found.</p>
+            {events.length === 0 ? (
+                <EmptyState
+                    title="No events recorded"
+                    description="Your event history will appear here after you record your first entry."
+                    actionHref="/events"
+                    actionLabel="Record an event"
+                />
+            ) : filteredEvents.length === 0 ? (
+                <EmptyState
+                    title="No matching events"
+                    description="No events match the current search or filter."
+                />
             ) : (
                 <div className="space-y-4">
                     {filteredEvents.map((event) => (
@@ -206,8 +252,8 @@ export default function EventsListPage() {
                                 Delete
                             </button>
                         </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
             )}
         </main>
     );
