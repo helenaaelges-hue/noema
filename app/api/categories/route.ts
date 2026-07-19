@@ -2,6 +2,7 @@ import {prisma} from "@/src/lib/prisma";
 import {NextResponse} from "next/server";
 import {getApiUserId} from "@/src/lib/apiAuth";
 import {cleanDisplayName, normalizeName} from "@/src/lib/names";
+import {readRequestBody} from "@/src/lib/readRequestBody";
 
 export async function GET() {
     const {
@@ -36,7 +37,25 @@ export async function POST(request: Request) {
         return response;
     }
 
-    const body = await request.json();
+    const {
+        body,
+        error: bodyError,
+    } = await readRequestBody(
+        request
+    );
+
+    if (bodyError || !body) {
+        return NextResponse.json(
+            {
+                error:
+                    bodyError ??
+                    "Invalid request body.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
 
     const name =
         typeof body.name === "string"

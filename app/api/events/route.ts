@@ -5,6 +5,7 @@ import {getApiUserId} from "@/src/lib/apiAuth";
 import {
     serializeEvent,
 } from "@/src/lib/serializeEvent";
+import {readRequestBody} from "@/src/lib/readRequestBody";
 
 function parseTriggerIds(
     value: unknown
@@ -38,8 +39,25 @@ export async function POST(
         return response;
     }
 
-    const body =
-        await request.json();
+    const {
+        body,
+        error: bodyError,
+    } = await readRequestBody(
+        request
+    );
+
+    if (bodyError || !body) {
+        return NextResponse.json(
+            {
+                error:
+                    bodyError ??
+                    "Invalid request body.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
 
     const categoryName =
         typeof body.category === "string"
@@ -131,10 +149,34 @@ export async function POST(
         );
     }
 
-    const eventDate =
-        body.eventDate
-            ? new Date(body.eventDate)
-            : new Date();
+    let eventDate =
+        new Date();
+
+    if (
+        body.eventDate !== undefined &&
+        body.eventDate !== null
+    ) {
+        if (
+            typeof body.eventDate !==
+                "string" ||
+            !body.eventDate.trim()
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "The event date is invalid.",
+                },
+                {
+                    status: 400,
+                }
+            );
+        }
+
+        eventDate =
+            new Date(
+                body.eventDate
+            );
+    }
 
     if (
         Number.isNaN(

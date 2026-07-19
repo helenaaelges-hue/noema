@@ -5,6 +5,7 @@ import {getApiUserId} from "@/src/lib/apiAuth";
 import {
     serializeEvent,
 } from "@/src/lib/serializeEvent";
+import {readRequestBody} from "@/src/lib/readRequestBody";
 
 type RouteContext = {
     params: Promise<{
@@ -161,8 +162,25 @@ export async function PUT(
         );
     }
 
-    const body =
-        await request.json();
+    const {
+        body,
+        error: bodyError,
+    } = await readRequestBody(
+        request
+    );
+
+    if (bodyError || !body) {
+        return NextResponse.json(
+            {
+                error:
+                    bodyError ??
+                    "Invalid request body.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
 
     const categoryName =
         typeof body.category === "string"
@@ -266,6 +284,22 @@ export async function PUT(
         return NextResponse.json(
             {
                 error: "Mood score must be a whole number from 1 to 10.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    if (
+        typeof body.eventDate !==
+            "string" ||
+        !body.eventDate.trim()
+    ) {
+        return NextResponse.json(
+            {
+                error:
+                    "The event date is required.",
             },
             {
                 status: 400,
