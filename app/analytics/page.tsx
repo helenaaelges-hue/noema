@@ -11,7 +11,6 @@ import KPICards from "@/src/components/analytics/KPICards";
 import TimeRangeSelector from "@/src/components/analytics/TimeRangeSelector";
 import InsightsSection from "@/src/components/analytics/InsightsSection";
 import MoodSection from "@/src/components/analytics/MoodSection";
-import InsightsLegend from "@/src/components/analytics/InsightsLegend";
 import CorrelationExplorer from "@/src/components/analytics/CorrelationExplorer";
 import OverviewSection from "@/src/components/analytics/OverviewSection";
 import TriggerAnalysisSection from "@/src/components/analytics/TriggerAnalysisSection";
@@ -38,6 +37,16 @@ export default function AnalyticsPage() {
     const [timeRange, setTimeRange] = useState<TimeRange>("30d");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    function handleTimeRangeChange(
+        nextTimeRange: TimeRange
+    ) {
+        setTimeRange(
+            nextTimeRange
+        );
+
+        setSelectedTrigger(null);
+    }
 
     useEffect(() => {
         async function loadData() {
@@ -202,13 +211,21 @@ export default function AnalyticsPage() {
     const triggers =
         Array.from(
             new Map(
-                events
-                    .flatMap((e) => e.triggers)
-                    .map((t) => [
-                        t.trigger.id,
-                        t.trigger,
+                visibleEvents
+                    .flatMap(event => event.triggers)
+                    .map(relation => [
+                        relation.trigger.id,
+                        relation.trigger,
                     ])
             ).values()
+        ).sort((first, second) =>
+            first.name.localeCompare(
+                second.name,
+                undefined,
+                {
+                    sensitivity: "base",
+                }
+            )  
         );
 
     const filteredEvents =
@@ -275,7 +292,7 @@ export default function AnalyticsPage() {
                 <>
                 <TimeRangeSelector
                     value={timeRange}
-                    onChange={setTimeRange}
+                    onChange={handleTimeRangeChange}
                 />
 
                 {visibleEvents.length === 0 ? (
@@ -312,8 +329,6 @@ export default function AnalyticsPage() {
                             />
                         ) : (
                             <>
-                                <InsightsLegend />
-
                                 <InsightsSection
                                     insights={insights}
                                 />

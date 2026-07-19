@@ -33,6 +33,14 @@ export default function TriggerCombinationsSection({
         <Accordion
             title="Trigger Pair Associations"
         >
+            <p className="mb-4 text-sm text-gray-600">
+                These results compare mood entries
+                where two triggers occurred together
+                with your overall mood average.
+                They describe associations in your
+                recorded data, not proven causes.
+            </p>
+
             {combinations.length === 0 ? (
                 <p>
                     Not enough combination data yet.
@@ -58,10 +66,13 @@ export default function TriggerCombinationsSection({
 
                             <p>
                                 Difference:{" "}
-                                {combo.difference > 0
-                                    ? "+"
-                                    : ""}
-                                {combo.difference}
+                                <span>
+                                    {combo.difference > 0
+                                        ? "+"
+                                        : ""}
+                                    {combo.difference.toFixed(1)}
+                                    {" "}vs overall average
+                                </span>
                             </p>
 
                             <p>
