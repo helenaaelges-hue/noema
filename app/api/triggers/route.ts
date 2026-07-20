@@ -83,6 +83,30 @@ export async function POST(
         );
     }
 
+    if (
+            typeof body.name !== "string"
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "Name is required.",
+                },
+                {
+                    status: 400,
+                }
+            );
+        }
+
+    const displayName =
+        cleanDisplayName(
+            body.name
+        );
+
+    const normalizedName =
+        normalizeName(
+            displayName
+        );
+
     const existingTriggers =
         await prisma.trigger.findMany({
             where: {
@@ -95,19 +119,19 @@ export async function POST(
         });
 
     const duplicate =
-        existingTriggers.find(
+        existingTriggers.some(
             trigger =>
                 normalizeName(
                     trigger.name
                 ) ===
-                normalizeName(name)
+                normalizedName
         );
 
     if (duplicate) {
         return NextResponse.json(
             {
                 error:
-                    `A trigger named "${duplicate.name}" already exists.`,
+                    "A trigger with this name already exists.",
             },
             {
                 status: 409,

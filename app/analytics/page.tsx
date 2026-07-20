@@ -3,9 +3,6 @@
 //React
 import {useEffect, useState} from "react";
 
-//Next
-import Link from "next/link";
-
 // Analytics components
 import KPICards from "@/src/components/analytics/KPICards";
 import TimeRangeSelector from "@/src/components/analytics/TimeRangeSelector";
@@ -264,107 +261,113 @@ export default function AnalyticsPage() {
         getMoodTrend(visibleEvents);
 
     return (
-        <main className="p-8 max-w-4xl mx-auto">
-            <Link href="/">
-                &larr; Home
-            </Link>
+        <main className="page-shell">
+            <div className="mb-8">
+                <h1 className="page-heading">
+                    Analytics
+                </h1>
 
-            <h1 className="text-3xl font-bold mt-4 mb-2">
-                Analytics
-            </h1>
+                <p className="page-description">
+                    Mood trends based on recorded events.
+                </p>
+            </div>
 
-            <p className="mb-8">
-                Mood trends based on recorded events.
-            </p>
-
-            {loading ? (
-                <LoadingState message="Calculating your analytics..." />
-            ) : error ? (
-                <ErrorState message={error} />
-            ) : events.length === 0 ? (
-                <EmptyState
-                    title="No analytics yet"
-                    description="Record some events to begin building your analytics dashboard."
-                    actionHref="/events"
-                    actionLabel="Record an event"
-                />
-            ) : (
-                <>
-                <TimeRangeSelector
-                    value={timeRange}
-                    onChange={handleTimeRangeChange}
-                />
-
-                {visibleEvents.length === 0 ? (
+            <div className="mt-8 space-y-4">
+                {loading ? (
+                    <LoadingState message="Calculating your analytics..." />
+                ) : error ? (
+                    <ErrorState message={error} />
+                ) : events.length === 0 ? (
                     <EmptyState
-                        title="No data for this period"
-                        description="There are no recorded events within the selected time range."
+                        title="No analytics yet"
+                        description="Record some events to begin building your analytics dashboard."
+                        actionHref="/events"
+                        actionLabel="Record an event"
                     />
                 ) : (
                     <>
-                        <KPICards
-                            averageMood={averageMood}
-                            moodTrend={moodTrends}
-                            bestTrigger={bestTrigger?.trigger ?? "-"}
+                    <div className="surface-card">
+                        <TimeRangeSelector
+                            value={timeRange}
+                            onChange={handleTimeRangeChange}
                         />
+                    </div>
 
-                        <OverviewSection
-                            totalEvents={totalEvents}
-                            averageMood={averageMood}
-                            totalMoodEntries={totalMoodEntries}
-                            topTrigger={topTrigger}
-                            latestMood={latestMood}
+                    {visibleEvents.length === 0 ? (
+                        <EmptyState
+                            title="No data for this period"
+                            description="There are no recorded events within the selected time range."
                         />
-
-                        <CategoryAnalysisSection
-                            categoryCounts={categoryCounts}
-                        />
-
-                        {totalMoodEntries === 0 ? (
-                            <EmptyState
-                                title="No mood data yet"
-                                description="Record mood events to unlock trends, trigger associations, and personalized insights."
-                                actionHref="/events"
-                                actionLabel="Record a mood event"
+                    ) : (
+                        <>
+                            <KPICards
+                                averageMood={averageMood}
+                                moodTrend={moodTrends}
+                                bestTrigger={bestTrigger?.trigger ?? "-"}
                             />
-                        ) : (
-                            <>
-                                <InsightsSection
-                                    insights={insights}
+                            <div className="space-y-4">
+
+                                {totalMoodEntries > 0 && (
+                                    <InsightsSection
+                                        insights={insights}
+                                    />
+                                )}
+
+                                <OverviewSection
+                                    totalEvents={totalEvents}
+                                    averageMood={averageMood}
+                                    totalMoodEntries={totalMoodEntries}
+                                    topTrigger={topTrigger}
+                                    latestMood={latestMood}
                                 />
 
-                                <CorrelationExplorer
-                                    triggers={triggers}
-                                    selectedTrigger={selectedTrigger}
-                                    onTriggerChange={setSelectedTrigger}
-                                    filteredEvents={filteredEvents}
-                                    selectionAverage={selectionAverage}
-                                    difference={difference}
+                                <CategoryAnalysisSection
+                                    categoryCounts={categoryCounts}
                                 />
 
-                                <TriggerCombinationsSection
-                                    combinations={triggerCombinations}
-                                    confidenceLabel={confidenceLabel}
-                                />
+                                {totalMoodEntries === 0 ? (
+                                    <EmptyState
+                                        title="No mood data yet"
+                                        description="Record mood events to unlock trends, trigger associations, and personalized insights."
+                                        actionHref="/events"
+                                        actionLabel="Record a mood event"
+                                    />
+                                ) : (
+                                    <>
+                                        <CorrelationExplorer
+                                            triggers={triggers}
+                                            selectedTrigger={selectedTrigger}
+                                            onTriggerChange={setSelectedTrigger}
+                                            filteredEvents={filteredEvents}
+                                            selectionAverage={selectionAverage}
+                                            difference={difference}
+                                        />
 
-                                <TriggerAnalysisSection
-                                    triggerMoodAverages={triggerMoodAverages}
-                                    overallAverage={overallAverage}
-                                    bestTrigger={bestTrigger}
-                                    worstTrigger={worstTrigger}
-                                    confidenceLabel={confidenceLabel}
-                                />
+                                        <TriggerCombinationsSection
+                                            combinations={triggerCombinations}
+                                            confidenceLabel={confidenceLabel}
+                                        />
 
-                                <MoodSection
-                                    moodData={moodData}
-                                    moodDistribution={moodDistribution}
-                                />
-                            </>
-                        )}
+                                        <TriggerAnalysisSection
+                                            triggerMoodAverages={triggerMoodAverages}
+                                            overallAverage={overallAverage}
+                                            bestTrigger={bestTrigger}
+                                            worstTrigger={worstTrigger}
+                                            confidenceLabel={confidenceLabel}
+                                        />
+
+                                        <MoodSection
+                                            moodData={moodData}
+                                            moodDistribution={moodDistribution}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                        </>
+                    )}
                     </>
                 )}
-                </>
-            )}
+            </div>
         </main>
     );
 }

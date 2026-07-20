@@ -12,7 +12,9 @@ export default function InsightsSection({
 }: Props) {
     return (
         <Accordion
-            title="💡 Did You Know?">
+            title="💡 Did You Know?"
+            defaultOpen
+        >
                 <InsightsLegend />
 
                 {insights.length === 0 ? (

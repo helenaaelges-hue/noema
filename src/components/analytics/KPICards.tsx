@@ -14,40 +14,41 @@ export default function KPICards({
 }: Props) {
 
     return (
-
-        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4 mb-8">
-            <div className="rounded-xl border p-5">
-                <p className="text-sm text-gray-500">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="surface-card-compact">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Average Mood
                 </p>
 
-                <p className="text-3xl font-bold">
+                <p className="mt-2 text-2xl font-bold tracking-tight text-indigo-700">
                     {averageMood ?? "-"}
                 </p>
             </div>
 
-            <div className="rounded-xl border p-5">
-                <p className="text-sm text-gray-500">
+            <div className="surface-card-compact">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Current Trend
                 </p>
 
-                <p className="text-2xl font-semibold">
+                <p className="mt-2 text-lg font-semibold text-slate-900">
                     {moodTrend.label}
                 </p>
 
-                <p className="text-sm text-gray-500">
-                    {moodTrend.value > 0 ? "+" : ""}
+                <p className="mt-1 text-2xl font-bold tracking-tight text-indigo-700">
+                    {moodTrend.value > 0
+                        ? "+"
+                        : ""}
                     {moodTrend.value}
                 </p>
             </div>
 
-            <div className="rounded-xl border p-5">
-                <p className="text-sm text-gray-500">
+            <div className="surface-card-compact">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Most Positive Trigger
                 </p>
 
-                <p className="text-xl font-semibold">
-                    {bestTrigger ?? "-"}
+                <p className="mt-2 break-words text-2xl font-bold tracking-tight text-indigo-700">
+                    {bestTrigger || "-"}
                 </p>
             </div>
         </div>

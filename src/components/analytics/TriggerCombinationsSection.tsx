@@ -12,80 +12,107 @@ type Props = {
     combinations: Combination[];
     confidenceLabel: (
         entries: number
-    ) => "Low" | "Moderate" | "High";
+    ) =>
+        | "Low"
+        | "Moderate"
+        | "High";
 };
+
+function formatDifference(
+    difference: number
+): string {
+    return difference > 0
+        ? `+${difference.toFixed(1)}`
+        : difference.toFixed(1);
+}
 
 export default function TriggerCombinationsSection({
     combinations,
     confidenceLabel,
 }: Props) {
-    if (combinations.length === 0) {
+    if (
+        combinations.length === 0
+    ) {
         return (
             <Accordion title="Trigger Pair Associations">
-                <p className="text-gray-600">
-                    No trigger pairs occurred together often enough during this period.
+                <p className="text-sm text-slate-600">
+                    No trigger pairs
+                    occurred together often
+                    enough during this
+                    period.
                 </p>
             </Accordion>
         );
     }
 
     return (
-        <Accordion
-            title="Trigger Pair Associations"
-        >
-            <p className="mb-4 text-sm text-gray-600">
-                These results compare mood entries
-                where two triggers occurred together
-                with your overall mood average.
-                They describe associations in your
-                recorded data, not proven causes.
+        <Accordion title="Trigger Pair Associations">
+            <p className="text-sm leading-6 text-slate-600">
+                These results compare
+                mood entries where two
+                triggers occurred together
+                with your overall mood
+                average. They describe
+                associations in your
+                recorded data, not proven
+                causes.
             </p>
 
-            {combinations.length === 0 ? (
-                <p>
-                    Not enough combination data yet.
-                </p>
-            ) : (
-                <div className="space-y-4">
-                    {combinations
-                        .slice(0, 10)
-                        .map((combo) => (
-
-                        <div
-                            key={combo.label}
-                            className="border rounded-lg p-4"
+            <div className="mt-5 space-y-3">
+                {combinations
+                    .slice(0, 10)
+                    .map(combo => (
+                        <article
+                            key={
+                                combo.label
+                            }
+                            className="rounded-xl border border-slate-200 p-4"
                         >
-                            <h3 className="font-semibold">
-                                {combo.label}
-                            </h3>
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <h3 className="font-semibold text-slate-900">
+                                        {
+                                            combo.label
+                                        }
+                                    </h3>
 
-                            <p>
-                                Average Mood:{" "}
-                                {combo.averageMood.toFixed(1)}
-                            </p>
+                                    <p className="mt-2 text-sm text-slate-600">
+                                        Average mood:{" "}
+                                        <strong className="text-slate-900">
+                                            {combo.averageMood.toFixed(
+                                                1
+                                            )}
+                                        </strong>
+                                    </p>
 
-                            <p>
-                                Difference:{" "}
-                                <span>
-                                    {combo.difference > 0
-                                        ? "+"
-                                        : ""}
-                                    {combo.difference.toFixed(1)}
-                                    {" "}vs overall average
-                                </span>
-                            </p>
+                                    <p className="text-sm text-slate-600">
+                                        Difference:{" "}
+                                        <strong className="text-slate-900">
+                                            {formatDifference(
+                                                combo.difference
+                                            )}
+                                        </strong>{" "}
+                                        compared with
+                                        overall mood
+                                    </p>
 
-                            <p>
-                                Entries: {combo.entries}
-                            </p>
+                                    <p className="text-sm text-slate-600">
+                                        Entries:{" "}
+                                        {
+                                            combo.entries
+                                        }
+                                    </p>
+                                </div>
 
-                            <ConfidenceBadge
-                                level={confidenceLabel(combo.entries)}
-                            />
-                        </div>
+                                <ConfidenceBadge
+                                    level={confidenceLabel(
+                                        combo.entries
+                                    )}
+                                />
+                            </div>
+                        </article>
                     ))}
-                </div>
-            )}
+            </div>
         </Accordion>
     );
 }

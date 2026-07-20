@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from "react";
-import LogoutButton from "@/src/components/auth/LogoutButton";
 import {EmptyState, ErrorState, LoadingState} from "@/src/components/ui/PageState";
 
 export default function Home() {
@@ -59,37 +58,58 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <h1 className="text-5xl font-bold mb-4">Noema</h1>
+    <main className="page-shell">
+      <div className="mb-8">
+        <h1 className="page-heading">Noema</h1>
 
-      <p className="text-xl text-center max-w-xl mb-8">
-        Track behaviors, emotions, habits, and triggers.
-        Discover meaningful patterns in your daily life.
-      </p>
+        <p className="page-description">
+          Track behaviors, emotions, habits, and triggers.
+          Discover meaningful patterns in your daily life.
+        </p>
+      </div>
 
-      <div className="flex gap-4">
+      <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <Link
-          href="/events"
-          className="border px-4 py-2 rounded"
+            href="/events"
+            className="surface-card-compact group"
         >
-          Event Entry 
+            <p className="font-semibold text-slate-900 group-hover:text-indigo-700">
+                Record Event
+            </p>
+
+            <p className="mt-1 text-sm text-slate-600">
+                Add a mood, habit, activity,
+                or other observation.
+            </p>
         </Link>
 
         <Link
-          href="/events-list"
-          className="border px-4 py-2 rounded"
+            href="/events-list"
+            className="surface-card-compact group"
         >
-          Event History
+            <p className="font-semibold text-slate-900 group-hover:text-indigo-700">
+                Event History
+            </p>
+
+            <p className="mt-1 text-sm text-slate-600">
+                Review and edit your recorded
+                timeline.
+            </p>
         </Link>
 
         <Link
-          href="/analytics"
-          className="border px-4 py-2 rounded"
+            href="/analytics"
+            className="surface-card-compact group"
         >
-          Analytics
-        </Link>
+            <p className="font-semibold text-slate-900 group-hover:text-indigo-700">
+                Analytics
+            </p>
 
-        <LogoutButton />
+            <p className="mt-1 text-sm text-slate-600">
+                Explore trends and trigger
+                associations.
+            </p>
+        </Link>
       </div>
 
       {loading ? (
@@ -105,33 +125,48 @@ export default function Home() {
         />
       ) : (
 
-        <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-4">
-            Recent Events
-          </h2>
+        <div className="mt-10">
+          <div className="mb-4 flex items-center justify-between gap-4">
+              <h2 className="section-heading">
+                  Recent Events
+              </h2>
 
-          {events.map((event) => (
+              <Link
+                  href="/events-list"
+                  className="text-link text-sm"
+              >
+                  View all
+              </Link>
+          </div>
 
-            <div
-              key={event.id}
-              className="border rounded p-3 mb-2"
-            >
+          <div className="space-y-3">
+              {events.map(event => (
+                  <article
+                      key={event.id}
+                      className="surface-card-compact"
+                  >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                                  {event.category}
+                              </p>
 
-              <strong>
-                {event.category}
-              </strong>
+                              <p className="mt-1 font-medium text-slate-900">
+                                  {event.value}
+                              </p>
+                          </div>
 
-              <p>
-                {event.value}
-              </p>
-
-              <small>
-                {new Date(
-                  event.eventDate
-                ).toLocaleString()}
-              </small>
-            </div>
-          ))}
+                          <time className="text-sm text-slate-500">
+                              {new Date(
+                                  event.eventDate
+                              ).toLocaleString(
+                                  "de-DE"
+                              )}
+                          </time>
+                      </div>
+                  </article>
+              ))}
+          </div>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import Accordion from "../Accordion";
 import ConfidenceBadge from "./ConfidenceBadge";
 
-type TriggerData ={
+type TriggerData = {
     trigger: string;
     average: number;
     difference: number;
@@ -15,8 +15,21 @@ type Props = {
     worstTrigger: TriggerData | null;
     confidenceLabel: (
         entries: number
-    ) => "Low" | "Moderate" | "High";
+    ) =>
+        | "Low"
+        | "Moderate"
+        | "High";
 };
+
+function formatDifference(
+    difference: number
+): string {
+    if (difference > 0) {
+        return `+${difference.toFixed(1)}`;
+    }
+
+    return difference.toFixed(1);
+}
 
 export default function TriggerAnalysisSection({
     triggerMoodAverages,
@@ -26,133 +39,192 @@ export default function TriggerAnalysisSection({
     confidenceLabel,
 }: Props) {
     if (
-            triggerMoodAverages.length === 0
-        ) {
-            return (
-                <Accordion title="Trigger Analysis">
-                    <p className="text-gray-600">
-                        No trigger-linked mood entries are available for this period.
-                    </p>
-                </Accordion>
-            );
-        }
-        
+        triggerMoodAverages.length ===
+        0
+    ) {
+        return (
+            <Accordion title="Trigger Analysis">
+                <p className="text-sm text-slate-600">
+                    No trigger-linked mood
+                    entries are available
+                    for this period.
+                </p>
+            </Accordion>
+        );
+    }
+
     return (
+        <Accordion title="Trigger Analysis">
+            <p className="text-sm leading-6 text-slate-600">
+                Trigger averages are
+                compared with your overall
+                mood average of{" "}
+                <strong>
+                    {overallAverage}
+                </strong>
+                . These are associations,
+                not proven causes.
+            </p>
 
-        <Accordion
-            title="Trigger Analysis"
-        >
-            <div className="border rounded-lg p-6 mb-8">
-                <h2 className="text-xl font-semibold mb-4">
-                    Trigger Insights
-                </h2>
-
-                {triggerMoodAverages.length === 0 ? (
-                    <p>No mood data yet.</p>
-                ) : (
-                    triggerMoodAverages
-                    .slice(0, 8)
-                    .map((item) => (
-                        <div
-                            key={item.trigger}
-                            className="mb-3"
-                        >
-                            <strong>
-                                {item.trigger}
-                            </strong>
-
-                            <p>
-                                Average mood:{" "}
-                                {item.average}
-                            </p>
-
-                            <p>
-                                Difference from Overall Average:
-                                {" "}
-                                {(item.average - overallAverage).toFixed(1)}
-                            </p>
-
-                            <p>
-                                Entries: {" "}
-                                {item.entries}
-                            </p>
-
-                            <ConfidenceBadge
-                                level={confidenceLabel(item.entries)}
-                            />
-                        </div>
-                    ))
-                )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold">
-                        Best Trigger
-                    </h3>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                        Highest associated mood
+                    </p>
 
                     {bestTrigger ? (
                         <>
-                            <p className="font-semibold">
-                                {bestTrigger.trigger}
+                            <h3 className="mt-2 text-lg font-semibold text-slate-900">
+                                {
+                                    bestTrigger.trigger
+                                }
+                            </h3>
+
+                            <p className="mt-2 text-sm text-slate-700">
+                                Average mood:{" "}
+                                <strong>
+                                    {
+                                        bestTrigger.average
+                                    }
+                                    /10
+                                </strong>
                             </p>
 
-                            <p>
-                                {bestTrigger.difference > 0 ? "+" : ""}
-                                {bestTrigger.difference} above average
+                            <p className="mt-1 text-sm text-slate-700">
+                                Difference:{" "}
+                                <strong>
+                                    {formatDifference(
+                                        bestTrigger.difference
+                                    )}
+                                </strong>
                             </p>
 
-                            <p>
-                                Average Mood: {bestTrigger.average}/10
-                            </p>
-
-                            <p>
+                            <p className="mt-1 text-sm text-slate-700">
                                 Entries:{" "}
-                                {bestTrigger.entries}
+                                {
+                                    bestTrigger.entries
+                                }
                             </p>
 
-                            <ConfidenceBadge
-                                level={confidenceLabel(bestTrigger.entries)}
-                            />
+                            <div className="mt-3">
+                                <ConfidenceBadge
+                                    level={confidenceLabel(
+                                        bestTrigger.entries
+                                    )}
+                                />
+                            </div>
                         </>
                     ) : (
-                        <p>No data</p>
+                        <p className="mt-2 text-sm text-slate-600">
+                            No data.
+                        </p>
                     )}
                 </div>
 
-                <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold">
-                        Lowest Mood Trigger
-                    </h3>
+                <div className="rounded-xl border border-red-200 bg-red-50/60 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+                        Lowest associated mood
+                    </p>
 
                     {worstTrigger ? (
                         <>
-                            <p className="font-semibold">
-                                {worstTrigger.trigger}
+                            <h3 className="mt-2 text-lg font-semibold text-slate-900">
+                                {
+                                    worstTrigger.trigger
+                                }
+                            </h3>
+
+                            <p className="mt-2 text-sm text-slate-700">
+                                Average mood:{" "}
+                                <strong>
+                                    {
+                                        worstTrigger.average
+                                    }
+                                    /10
+                                </strong>
                             </p>
 
-                            <p>
-                                {worstTrigger.difference}
-                                {" "}below average
+                            <p className="mt-1 text-sm text-slate-700">
+                                Difference:{" "}
+                                <strong>
+                                    {formatDifference(
+                                        worstTrigger.difference
+                                    )}
+                                </strong>
                             </p>
 
-                            <p>
-                                Average Mood: {worstTrigger.average}/10
-                            </p>
-
-                            <p>
+                            <p className="mt-1 text-sm text-slate-700">
                                 Entries:{" "}
-                                {worstTrigger.entries}
+                                {
+                                    worstTrigger.entries
+                                }
                             </p>
 
-                            <ConfidenceBadge
-                                level={confidenceLabel(worstTrigger.entries)}
-                            />
+                            <div className="mt-3">
+                                <ConfidenceBadge
+                                    level={confidenceLabel(
+                                        worstTrigger.entries
+                                    )}
+                                />
+                            </div>
                         </>
                     ) : (
-                        <p>No data</p>
+                        <p className="mt-2 text-sm text-slate-600">
+                            No data.
+                        </p>
                     )}
                 </div>
+            </div>
+
+            <div className="mt-6 space-y-3">
+                {triggerMoodAverages
+                    .slice(0, 8)
+                    .map(item => (
+                        <article
+                            key={
+                                item.trigger
+                            }
+                            className="rounded-xl border border-slate-200 p-4"
+                        >
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <h3 className="font-semibold text-slate-900">
+                                        {
+                                            item.trigger
+                                        }
+                                    </h3>
+
+                                    <p className="mt-1 text-sm text-slate-600">
+                                        Average mood:{" "}
+                                        {
+                                            item.average
+                                        }
+                                        /10
+                                    </p>
+
+                                    <p className="text-sm text-slate-600">
+                                        Difference:{" "}
+                                        {formatDifference(
+                                            item.difference
+                                        )}
+                                    </p>
+
+                                    <p className="text-sm text-slate-600">
+                                        Entries:{" "}
+                                        {
+                                            item.entries
+                                        }
+                                    </p>
+                                </div>
+
+                                <ConfidenceBadge
+                                    level={confidenceLabel(
+                                        item.entries
+                                    )}
+                                />
+                            </div>
+                        </article>
+                    ))}
             </div>
         </Accordion>
     );

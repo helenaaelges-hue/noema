@@ -7,6 +7,7 @@ import {
     YAxis,
     Tooltip,
     CartesianGrid,
+    ResponsiveContainer,
 } from "recharts";
 
 import Accordion from "../Accordion";
@@ -32,76 +33,165 @@ export default function MoodSection({
     moodDistribution,
 }: Props) {
     return (
-        <Accordion
-            title="Mood Analysis"
-        >
-            <div className="border rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">
-                    Mood Trend
+        <Accordion title="Mood Analysis">
+            <section>
+                <h2 className="font-semibold text-slate-900">
+                    Mood trend
                 </h2>
 
-                <LineChart
-                    width={700}
-                    height={350}
-                    data={moodData}
-                >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis domain={[0, 10]} />
-                    <Tooltip
-                        formatter={(
-                            value,
-                            name
-                        ) => {
-                            if (
-                                name === "mood"
-                            ) {
-                                return [
+                <p className="mt-1 text-sm text-slate-600">
+                    The darker line shows
+                    the seven-entry moving
+                    average. The lighter
+                    line shows individual
+                    mood scores.
+                </p>
+
+                <div className="mt-4 h-80 w-full min-w-0">
+                    <ResponsiveContainer
+                        width="100%"
+                        height="100%"
+                    >
+                        <LineChart
+                            data={moodData}
+                            margin={{
+                                top: 8,
+                                right: 8,
+                                left: -20,
+                                bottom: 8,
+                            }}
+                        >
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                            />
+
+                            <XAxis
+                                dataKey="day"
+                                tick={{
+                                    fontSize:
+                                        12,
+                                }}
+                                minTickGap={24}
+                            />
+
+                            <YAxis
+                                domain={[
+                                    0,
+                                    10,
+                                ]}
+                                tick={{
+                                    fontSize:
+                                        12,
+                                }}
+                            />
+
+                            <Tooltip
+                                formatter={(
                                     value,
-                                    "Trend",
-                                ];
-                            }
+                                    name
+                                ) => {
+                                    if (
+                                        name ===
+                                        "mood"
+                                    ) {
+                                        return [
+                                            value,
+                                            "Trend",
+                                        ];
+                                    }
 
-                            return [
-                                value,
-                                "Actual",
-                            ];
-                        }}
-                    />
+                                    return [
+                                        value,
+                                        "Actual",
+                                    ];
+                                }}
+                            />
 
-                    <Line
-                        dataKey="actual"
-                        stroke="#bdbdbd"
-                        strokeWidth={1}
-                        dot={false}
-                    />
+                            <Line
+                                type="monotone"
+                                dataKey="actual"
+                                stroke="#94a3b8"
+                                strokeWidth={1.5}
+                                dot={false}
+                                connectNulls
+                            />
 
-                    <Line
-                        dataKey="mood"
-                        strokeWidth={3}
-                        dot={false}
-                    />
-                </LineChart>
-            </div>
+                            <Line
+                                type="monotone"
+                                dataKey="mood"
+                                stroke="#4f46e5"
+                                strokeWidth={3}
+                                dot={false}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </section>
 
-            <div className="border rounded-lg p-6 mt-8">
-                <h2 className="text-xl font-semibold mb-4">
-                    Mood Distribution
+            <section className="mt-8 border-t border-slate-100 pt-6">
+                <h2 className="font-semibold text-slate-900">
+                    Mood distribution
                 </h2>
 
-                <BarChart
-                    width={700}
-                    height={300}
-                    data={moodDistribution}
-                >
+                <p className="mt-1 text-sm text-slate-600">
+                    Number of mood entries
+                    recorded at each score.
+                </p>
 
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="score" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="count" />
-                </BarChart>
-            </div>
+                <div className="mt-4 h-72 w-full min-w-0">
+                    <ResponsiveContainer
+                        width="100%"
+                        height="100%"
+                    >
+                        <BarChart
+                            data={
+                                moodDistribution
+                            }
+                            margin={{
+                                top: 8,
+                                right: 8,
+                                left: -20,
+                                bottom: 8,
+                            }}
+                        >
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                            />
+
+                            <XAxis
+                                dataKey="score"
+                                tick={{
+                                    fontSize:
+                                        12,
+                                }}
+                            />
+
+                            <YAxis
+                                allowDecimals={
+                                    false
+                                }
+                                tick={{
+                                    fontSize:
+                                        12,
+                                }}
+                            />
+
+                            <Tooltip />
+
+                            <Bar
+                                dataKey="count"
+                                fill="#4f46e5"
+                                radius={[
+                                    6,
+                                    6,
+                                    0,
+                                    0,
+                                ]}
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </section>
         </Accordion>
     );
 }

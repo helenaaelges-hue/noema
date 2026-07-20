@@ -1,26 +1,145 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #172033;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --surface: #ffffff;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: #eef2ff;
+  --danger: #b91c1c;
+  --danger-soft: #fef2f2;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+    box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+    min-height: 100%;
+    background: var(--background);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    min-height: 100%;
+    margin: 0;
+    background:
+        radial-gradient(
+            circle at top left,
+            rgba(99, 102, 241, 0.07),
+            transparent 28rem
+        ),
+        var(--background);
+    color: var(--foreground);
+    line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button,
+a {
+    transition:
+        color 150ms ease,
+        background-color 150ms ease,
+        border-color 150ms ease,
+        opacity 150ms ease,
+        box-shadow 150ms ease;
+}
+
+button:not(:disabled),
+select,
+input[type="checkbox"] {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+::selection {
+    background: #c7d2fe;
+    color: #1e1b4b;
+}
+
+@layer components {
+    .page-shell {
+        @apply mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8;
+    }
+
+    .page-shell-narrow {
+        @apply mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-8;
+    }
+
+    .page-heading {
+        @apply text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl;
+    }
+
+    .page-description {
+        @apply mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base;
+    }
+
+    .section-heading {
+        @apply text-xl font-semibold tracking-tight text-slate-900;
+    }
+
+    .surface-card {
+        @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6;
+    }
+
+    .surface-card-compact {
+        @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm;
+    }
+
+    .field-label {
+        @apply mb-1.5 block text-sm font-medium text-slate-700;
+    }
+
+    .field-input {
+        @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100;
+    }
+
+    .button-primary {
+        @apply inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200 disabled:opacity-50;
+    }
+
+    .button-secondary {
+        @apply inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200 disabled:opacity-50;
+    }
+
+    .button-danger {
+        @apply inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:opacity-50;
+    }
+
+    .text-link {
+        @apply font-medium text-indigo-700 underline decoration-indigo-200 underline-offset-4 hover:text-indigo-900 hover:decoration-indigo-400;
+    }
+
+    .subtle-text {
+        @apply text-sm text-slate-600;
+    }
+}
+
+@media (
+    prefers-reduced-motion:
+        reduce
+) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+:focus-visible {
+    outline-offset: 2px;
 }

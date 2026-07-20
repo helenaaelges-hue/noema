@@ -76,6 +76,42 @@ export async function POST(request: Request) {
         );
     }
 
+    if (
+        typeof body.name !== "string"
+    ) {
+        return NextResponse.json(
+            {
+                error:
+                    "Name is required.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
+    const displayName =
+        cleanDisplayName(
+            body.name
+        );
+
+    const normalizedName =
+        normalizeName(
+            displayName
+        );
+
+    if (!displayName) {
+        return NextResponse.json(
+            {
+                error:
+                    "Category name is required.",
+            },
+            {
+                status: 400,
+            }
+        );
+    }
+
     const existingCategories =
         await prisma.category.findMany({
             where: {
@@ -88,19 +124,19 @@ export async function POST(request: Request) {
         });
 
     const duplicate =
-        existingCategories.find(
+        existingCategories.some(
             category =>
                 normalizeName(
                     category.name
                 ) ===
-                normalizeName(name)
+                normalizedName
         );
 
     if (duplicate) {
         return NextResponse.json(
             {
                 error:
-                    `A category named "${duplicate.name}" already exists.`,
+                    "A category with this name already exists.",
             },
             {
                 status: 409,
@@ -112,7 +148,12 @@ export async function POST(request: Request) {
         await prisma.category.create({
             data: {
                 userId,
-                name,
+                name: displayName,
+            },
+
+            select: {
+                id: true,
+                name: true,
             },
         });
 

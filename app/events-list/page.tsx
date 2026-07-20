@@ -93,46 +93,51 @@ export default function EventsListPage() {
 
         if (!confirmed) return;
 
-        const response = await fetch(
-            `/api/events/${id}`,
-            {
-                method: "DELETE",
-            }
-        );
+        setError("");
 
-        if (response.ok) {
-            setEvents(
-                events.filter(
-                    (event) => event.id !== id
+        try {
+            const response = await fetch(
+                `/api/events/${id}`,
+                {
+                    method: "DELETE",
+                }
+            );
+
+            if (response.ok) {
+                const data: unknown =
+                    await response.json();
+
+                const message =
+                    data &&
+                    typeof data ===
+                        "object" &&
+                    "error" in data &&
+                    typeof data.error ===
+                        "string"
+                        ? data.error
+                        : "Failed to delete event.";
+
+                throw new Error(message);
+            }
+
+            setEvents(currentEvents =>
+                currentEvents.filter(
+                    event =>
+                        event.id !== id
                 )
+            );
+        } catch (deleteError) {
+            setError(
+                deleteError instanceof Error
+                    ? deleteError.message
+                    : "Failed to delete event."
             );
         }
     }
 
     if (loading) {
         return (
-            <main className="p-8 max-w-4xl mx-auto">
-                <p>Loading events...</p>
-            </main>
-        );
-    }
-
-    if (error) {
-        return (
-            <main className="p-8 max-w-4xl mx-auto">
-                <p
-                    role="alert"
-                    className="text-red-700"
-                >
-                    {error}
-                </p>
-            </main>
-        );
-    }
-
-    if (loading) {
-        return (
-            <main className="p-8 max-w-4xl mx-auto">
+            <main className="page-shell">
                 <LoadingState
                     message="Loading events..."
                 />
@@ -142,7 +147,7 @@ export default function EventsListPage() {
 
     if (error) {
         return (
-            <main className="p-8 max-w-4xl mx-auto">
+            <main className="page-shell">
                 <ErrorState
                     message={error}
                 />
@@ -167,22 +172,39 @@ export default function EventsListPage() {
     });
 
     return (
-        <main className="p-8 max-w-4xl mx-auto">
-            <Link href="/">
-                &larr; Home 
-            </Link>
+        <main className="page-shell">
+            <div className="mb-8">
+                <h1 className="page-heading">
+                    Event History
+                </h1>
 
-            <h1 className="text-3xl font-bold mt-4 mb-6">
-                Event History
-            </h1>
+                <p className="page-description">
+                    Review, search, edit, or delete
+                    your recorded events.
+                </p>
+            </div>
 
-            <input
-                type="text"
-                placeholder="Search events..."
-                className="border rounded p-2 w-full mb-6"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="surface-card mb-6">
+                <label
+                    htmlFor="event-search"
+                    className="field-label"
+                >
+                    Search events
+                </label>
+
+                <input
+                    id="event-search"
+                    type="search"
+                    placeholder="Search events..."
+                    className="feld-input"
+                    value={search}
+                    onChange={event => setSearch(event.target.value)}
+                />
+
+                <p className="mt-2 text-sm text-slate-500">
+                    Search by category, value, trigger, or notes.
+                </p>
+            </div>
 
             {events.length === 0 ? (
                 <EmptyState
@@ -199,62 +221,108 @@ export default function EventsListPage() {
             ) : (
                 <div className="space-y-4">
                     {filteredEvents.map((event) => (
-
-                        <div 
+                        <article 
                             key={event.id}
-                            className="border rounded p-4"
+                            className="surface-card-compact"
                         >
-                            <p>
-                                <strong>Category:</strong> {event.category}
-                            </p>
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                                        {event.category}
+                                    </p>
 
-                            <p>
-                                <strong>Value:</strong> {event.value}
-                            </p>
+                                    <h2 className="mt-1 text-lg font-semibold text-slate-900">
+                                        {event.value}
+                                    </h2>
+                                </div>
 
-                        {event.moodScore !== null && (
-                            <p>
-                                <strong>Mood Score:</strong>{" "}
-                                {event.moodScore}/10
-                            </p>
-                        )}
+                                <time
+                                    dateTime={
+                                        event.eventDate
+                                    }
+                                    className="text-sm text-slate-500"
+                                >
+                                    {new Date(
+                                        event.eventDate
+                                    ).toLocaleString(
+                                        "de-DE"
+                                    )}
+                                </time>
+                            </div>
 
-                            <p>
-                                <strong>Triggers:</strong>{" "}
-                                    {event.triggers.length > 0
-                                        ? event.triggers
-                                            .map((t) => t.trigger.name)
-                                            .join(", ")
-                                        : "-"}
-                            </p>
+                            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                                {event.moodScore !==
+                                    null && (
+                                    <div>
+                                        <dt className="font-medium text-slate-700">
+                                            Mood Score
+                                        </dt>
 
-                            <p>
-                                <strong>Notes:</strong> {event.notes || "-"}
-                            </p>
+                                        <dd className="text-slate-600">
+                                            {
+                                            event.moodScore
+                                            }
+                                            /10
+                                        </dd>
+                                    </div>
+                                )}
 
-                            <p>
-                                <strong>Event Date:</strong>{" "}
-                                {new Date(event.eventDate)
-                                    .toLocaleString("de-DE")}
-                            </p>
+                                <div>
+                                    <dt className="font-medium text-slate-700">
+                                        Triggers
+                                    </dt>
 
-                            <Link
-                                href={`/events/edit/${event.id}`}
-                                className="border rounded px-3 py-2 mr-2"
-                            >
-                                Edit
-                            </Link>
+                                    <dd className="text-slate-600">
+                                        {event
+                                            .triggers
+                                            .length >
+                                        0
+                                            ? event.triggers
+                                                    .map(
+                                                        relation =>
+                                                            relation
+                                                                .trigger
+                                                                .name
+                                                    )
+                                                    .join(
+                                                        ", "
+                                                    )
+                                            : "None"}
+                                    </dd>
+                                </div>
 
-                            <button
-                                onClick={() => deleteEvent(event.id)}
-                                className="mt-4 border rounded px-3 py-1"
-                            >
-                                Delete
-                            </button>
-                        </div>
-                        ))}
-                    </div>
+                                <div className="sm:col-span-2">
+                                    <dt className="font-medium text-slate-700">
+                                        Notes
+                                    </dt>
+
+                                    <dd className="whitespace-pre-wrap text-slate-600">
+                                        {event.notes ||
+                                            "No notes"}
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+                                <Link
+                                    href={`/events/edit/${event.id}`}
+                                    className="button-secondary"
+                                >
+                                    Edit
+                                </Link>
+
+                                <button
+                                    type="button"
+                                    onClick={() => deleteEvent(event.id)}
+                                    className="button-danger"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </article>
+                    ))}
+                </div>
             )}
         </main>
     );
-}  
+}

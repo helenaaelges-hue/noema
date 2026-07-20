@@ -30,7 +30,7 @@ function getLocalDateTime(): string {
 
 async function readResponse(
     response: Response
-): Promise<any> {
+): Promise<unknown> {
     const text =
         await response.text();
 
@@ -46,6 +46,39 @@ async function readResponse(
         );
     }
 }
+
+function getErrorMessage(
+    data: unknown,
+    fallback: string
+): string {
+    if (
+        data !== null &&
+        typeof data === "object" &&
+        "error" in data &&
+        typeof data.error === "string"
+    ) {
+        return data.error;
+    }
+
+    return fallback;
+}
+
+function isNamedOption(
+    data: unknown
+): data is {
+    id: number;
+    name: string;
+} {
+    return (
+        data !== null &&
+        typeof data === "object" &&
+        "id" in data &&
+        typeof data.id === "number" &&
+        "name" in data &&
+        typeof data.name === "string"
+    );
+}
+
 
 export default function EventsPage() {
     const [category, setCategory] = useState("");
@@ -66,6 +99,17 @@ export default function EventsPage() {
     const [loadError, setLoadError] = useState("");
     const [actionError, setActionError] = useState("");
     const [saving, setSaving] = useState(false);
+
+    function showActionError(
+        message: string
+    ) {
+        setActionError(message);
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    }
 
     useEffect(() => {
         async function loadOptions() {
@@ -94,15 +138,15 @@ export default function EventsPage() {
                 ]);
 
                 if (!categoryResponse.ok) {
-                    throw new Error(
-                        categoryData.error ??
-                        "Failede to load categories."
+                    getErrorMessage(
+                        categoryData,
+                        "Failed to load categories."
                     );
                 }
 
                 if (!triggerResponse.ok) {
-                    throw new Error(
-                        triggerData.error ??
+                    getErrorMessage(
+                        triggerData,
                         "Failed to load triggers."
                     );
                 }
@@ -155,7 +199,7 @@ export default function EventsPage() {
             newCategory.trim();
 
         if (!name) {
-            setActionError(
+            showActionError(
                 "Enter a category name."
             );
             return;
@@ -187,28 +231,24 @@ export default function EventsPage() {
 
             if (!response.ok) {
                 throw new Error(
-                    data?.error ??
-                    "Failed to create category."
+                    getErrorMessage(
+                        data,
+                        "Failed to create category."
+                    )
                 );
             }
 
-            if (
-                !data ||
-                typeof data.id !==
-                    "number" ||
-                typeof data.name !==
-                    "string"
-            ) {
+            if (!isNamedOption(data)) {
                 throw new Error(
                     "The category API returned an invalid response."
                 );
             }
 
-            const createdCategory: 
+            const createdCategory:
                 CategoryOption = {
-                id: data.id,
-                name: data.name,
-            };
+                    id: data.id,
+                    name: data.name,
+                };
 
             setCategories(current =>
                 sortByName([
@@ -224,7 +264,7 @@ export default function EventsPage() {
             setNewCategory("");
             setShowCategoryForm(false);
         } catch (categoryError) {
-            setActionError(
+            showActionError(
                 categoryError
                     instanceof Error
                     ? categoryError.message
@@ -234,8 +274,7 @@ export default function EventsPage() {
     }
 
     async function deleteCategory(
-        categoryToDelete:
-            CategoryOption
+        categoryToDelete: CategoryOption
     ) {
         const confirmed =
             window.confirm(
@@ -249,7 +288,6 @@ export default function EventsPage() {
         setActionError("");
 
         try {
-
             const response =
                 await fetch(
                     `/api/categories/${categoryToDelete.id}`,
@@ -265,8 +303,10 @@ export default function EventsPage() {
 
             if (!response.ok) {
                 throw new Error(
-                    data?.error ??
-                    "Failed to delete category."
+                    getErrorMessage(
+                        data,
+                        "Failed to delete category."
+                    )
                 );
             }
 
@@ -285,9 +325,8 @@ export default function EventsPage() {
                 setCategory("");
             }
         } catch (categoryError) {
-            setActionError(
-                categoryError
-                    instanceof Error
+            showActionError(
+                categoryError instanceof Error
                     ? categoryError.message
                     : "Failed to delete category."
             );
@@ -299,7 +338,7 @@ export default function EventsPage() {
             newTrigger.trim();
 
         if (!name) {
-            setActionError(
+            showActionError(
                 "Enter a trigger name."
             );
             return;
@@ -331,18 +370,14 @@ export default function EventsPage() {
 
             if (!response.ok) {
                 throw new Error(
-                    data?.error ??
-                    "Failed to create trigger."
+                    getErrorMessage(
+                        data,
+                        "Failed to create trigger."
+                    )
                 );
             }
 
-            if (
-                !data ||
-                typeof data.id !==
-                    "number" ||
-                typeof data.name !==
-                    "string"
-            ) {
+            if (!isNamedOption(data)) {
                 throw new Error(
                     "The trigger API returned an invalid response."
                 );
@@ -352,7 +387,7 @@ export default function EventsPage() {
                 TriggerOption = {
                     id: data.id,
                     name: data.name,
-            };
+                };
 
             setTriggers(current =>
                 sortByName([
@@ -373,7 +408,7 @@ export default function EventsPage() {
             setNewTrigger("");
             setShowTriggerForm(false);
         } catch (triggerError) {
-            setActionError(
+            showActionError(
                 triggerError
                     instanceof Error
                     ? triggerError.message
@@ -383,8 +418,7 @@ export default function EventsPage() {
     }
 
     async function deleteTrigger(
-        triggerToDelete: 
-            TriggerOption
+        triggerToDelete: TriggerOption
     ) {
         const confirmed =
             window.confirm(
@@ -398,7 +432,6 @@ export default function EventsPage() {
         setActionError("");
 
         try {
-
             const response =
                 await fetch(
                     `/api/triggers/${triggerToDelete.id}`,
@@ -414,8 +447,10 @@ export default function EventsPage() {
 
             if (!response.ok) {
                 throw new Error(
-                    data?.error ??
-                    "Failed to delete trigger."
+                    getErrorMessage(
+                        data,
+                        "Failed to delete trigger."
+                    )
                 );
             }
 
@@ -435,9 +470,8 @@ export default function EventsPage() {
                 )
             );
         } catch (triggerError) {
-            setActionError(
-                triggerError
-                    instanceof Error
+            showActionError(
+                triggerError instanceof Error
                     ? triggerError.message
                     : "Failed to delete trigger."
             );
@@ -476,7 +510,7 @@ export default function EventsPage() {
                 !category ||
                 !value.trim()
             ) {
-                setActionError(
+                showActionError(
                     "Please select a category and enter a value."
                 );
                 return;
@@ -486,14 +520,14 @@ export default function EventsPage() {
                 category === "Mood" &&
                 !moodScore
             ) {
-                setActionError(
+                showActionError(
                     "Please enter a mood score."
                 );
                 return;
             }
 
             if (!eventDate) {
-                setActionError(
+                showActionError(
                     "Please select an event date."
                 );
                 return;
@@ -535,8 +569,8 @@ export default function EventsPage() {
                     );
 
                 if (!response.ok) {
-                    throw new Error(
-                        data?.error ??
+                    getErrorMessage(
+                        data,
                         "Failed to save event."
                     );
                 }
@@ -552,11 +586,11 @@ export default function EventsPage() {
                     getLocalDateTime()
                 );
             } catch (saveError) {
-                setActionError(
+                showActionError(
                     saveError
                         instanceof Error
                         ? saveError.message
-                        : "Failed to save evnt."
+                        : "Failed to save event."
                 );
             } finally {
                 setSaving(false);
@@ -564,10 +598,14 @@ export default function EventsPage() {
         };  
 
     return (
-        <main className="p-8 max-w-xl mx-auto">
-           <Link href="/">&larr; Home</Link>
-           
-            <h1 className="text-3xl font-bold mt-4 mb-6">Event Entry</h1>
+        <main className="page-shell-narrow">
+            <div className="mb-8">
+                <h1 className="page-heading">Event Entry</h1>
+
+                <p className="page-description">
+                    Add events such as Mood, Sleep, or Exercise.
+                </p>
+            </div>
 
             {loadingOptions ? (
                 <LoadingState
@@ -582,12 +620,12 @@ export default function EventsPage() {
                     onSubmit={
                         saveEvent
                     }
-                    className="flex flex-col gap-4"
+                    className="surface-card flex flex-col gap-5"
                 >
                     {actionError && (
                         <p
                             role="alert"
-                            className="rounded border border-red-200 bg-red-50 p-3 text-red-700"
+                            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
                         >
                             {actionError}
                         </p>
@@ -596,7 +634,7 @@ export default function EventsPage() {
                     <div>
                         <label
                             htmlFor="eventDate"
-                            className="block mb-1"
+                            className="field-label"
                         >
                             Date & Time
                         </label>
@@ -604,7 +642,7 @@ export default function EventsPage() {
                         <input
                             id="eventDate"
                             type="datetime-local"
-                            className="border p-2 w-full"
+                            className="field-input"
                             value={eventDate}
                             required
                             onChange={
@@ -620,14 +658,14 @@ export default function EventsPage() {
                     <div>
                         <label
                             htmlFor="category"
-                            className="block mb-1"
+                            className="field-label"
                         >
                             Category
                         </label>
 
                         <select
                             id="category"
-                            className="border p-2 w-full"
+                            className="field-input"
                             value={category}
                             required
                             onChange={
@@ -653,7 +691,7 @@ export default function EventsPage() {
 
                         <button
                             type="button"
-                            className="mt-2 text-sm underline"
+                            className="text-link mt-2 mr-4 text-sm"
                             onClick={() =>
                                 setShowCategoryForm(
                                     current =>
@@ -666,7 +704,7 @@ export default function EventsPage() {
 
                         <button
                             type="button"
-                            className="mt-2 ml-4 text-sm underline"
+                            className="text-link mt-2 text-sm"
                             onClick={() =>
                                 setShowCategoryManager(
                                     current => !current
@@ -680,7 +718,7 @@ export default function EventsPage() {
                             <div className="mt-3">
                                 <input
                                     type="text"
-                                    className="border p-2 w-full"
+                                    className="field-input"
                                     placeholder="Category name"
                                     value={newCategory}
                                     onChange={
@@ -698,7 +736,7 @@ export default function EventsPage() {
                                     onClick={
                                         addCategory
                                     }
-                                    className="border rounded p-2 mt-2"
+                                    className="button-secondary mt-2"
                                 >
                                     Save Category
                                 </button>
@@ -706,14 +744,14 @@ export default function EventsPage() {
                         )}
 
                         {showCategoryManager && (
-                            <div className="mt-3 space-y-2 rounded border p-3">
+                            <div className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                                 {categories.map(
                                     categoryItem => (
                                         <div
                                             key={
                                                 categoryItem.id
                                             }
-                                            className="flex items-center justify-between gap-4"
+                                            className="flex items-center justify-between gap-4 rounded-lg bg-white px-3 py-2"
                                         >
                                             <span>
                                                 {
@@ -723,7 +761,7 @@ export default function EventsPage() {
 
                                             <button
                                                 type="button"
-                                                className="text-sm text-red-700 underline"
+                                                className="button-danger"
                                                 onClick={() =>
                                                     deleteCategory(
                                                         categoryItem
@@ -742,7 +780,7 @@ export default function EventsPage() {
                     <div>
                         <label
                             htmlFor="value"
-                            className="block mb-1"
+                            className="field-label"
                         >
                             Value
                         </label>
@@ -750,7 +788,7 @@ export default function EventsPage() {
                         <input
                             id="value"
                             type="text"
-                            className="border p-2 w-full"
+                            className="field-input"
                             placeholder="e.g. Happy, 8 hours, Gym"
                             value={value}
                             required
@@ -768,7 +806,7 @@ export default function EventsPage() {
                         <div>
                             <label
                                 htmlFor="moodScore"
-                                className="block mb-1"
+                                className="field-label"
                             >
                                 Mood Score (1-10)
                             </label>
@@ -779,7 +817,7 @@ export default function EventsPage() {
                                 min={1}
                                 max={10}
                                 step={1}
-                                className="border p-2 w-full"
+                                className="field-input"
                                 value={moodScore}
                                 required
                                 onChange={
@@ -791,39 +829,44 @@ export default function EventsPage() {
                     )}
 
                     <fieldset>
-                        <legend className="font-medium">
+                        <legend className="field-label">
                             Triggers
                         </legend>
 
-                        <div className="space-y-2 mt-2">
+                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
                             {triggers.map(
                                 trigger => (
-                                <label
-                                    key={trigger.id}
-                                    className="flex items-center gap-2"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedTriggers.includes(trigger.id)}
-                                        onChange={
-                                            event =>
+                                    <label
+                                        key={trigger.id}
+                                        className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                            checked={
+                                                selectedTriggers.includes(
+                                                    trigger.id
+                                                )
+                                            }
+                                            onChange={event =>
                                                 toggleTrigger(
                                                     trigger.id,
-                                                    event
-                                                        .target
-                                                        .checked
+                                                    event.target.checked
                                                 )
-                                        }
-                                    />
-                                    {trigger.name}
-                                </label>
+                                            }
+                                        />
+
+                                        <span>
+                                            {trigger.name}
+                                        </span>
+                                    </label>
                                 )
                             )}
                         </div>
 
                         <button
                             type="button"
-                            className="mt-2 text-sm underline"
+                            className="text-link mt-2 mr-4 text-sm"
                             onClick={() =>
                                 setShowTriggerForm(
                                     current =>
@@ -836,7 +879,7 @@ export default function EventsPage() {
 
                         <button
                             type="button"
-                            className="mt-2 ml-4 text-sm underline"
+                            className="text-link mt-2 text-sm"
                             onClick={() =>
                                 setShowTriggerManager(
                                     current =>
@@ -852,7 +895,7 @@ export default function EventsPage() {
 
                                 <input
                                     type="text"
-                                    className="border p-2 w-full"
+                                    className="field-input"
                                     placeholder="Trigger name"
                                     value={newTrigger}
                                     onChange={
@@ -863,7 +906,7 @@ export default function EventsPage() {
 
                                 <button
                                     type="button"
-                                    className="border rounded p-2 mt-2"
+                                    className="button-secondary mt-2"
                                     onClick={addTrigger}
                                 >
                                     Save Trigger
@@ -872,14 +915,14 @@ export default function EventsPage() {
                         )}
 
                         {showTriggerManager && (
-                            <div className="mt-3 space-y-2 rounded border p-3">
+                            <div className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                                 {triggers.map(
                                     triggerItem => (
                                         <div
                                             key={
                                                 triggerItem.id
                                             }
-                                            className="flex items-center justify-between gap-4"
+                                            className="flex items-center justify-between gap-4 rounded-lg bg-white px-3 py-2"
                                         >
                                             <span>
                                                 {triggerItem.name}
@@ -887,7 +930,7 @@ export default function EventsPage() {
 
                                             <button
                                                 type="button"
-                                                className="text-sm text-red-700 underline"
+                                                className="button-danger"
                                                 onClick={() =>
                                                     deleteTrigger(
                                                         triggerItem
@@ -906,14 +949,14 @@ export default function EventsPage() {
                     <div>
                         <label
                             htmlFor="notes"
-                            className="block mb-1"
+                            className="field-label"
                         >
                             Notes
                         </label>
 
                         <textarea
                             id="notes"
-                            className="border p-2 w-full"
+                            className="field-input"
                             rows={4}
                             placeholder="Additional details..."
                             value={notes}
@@ -929,7 +972,7 @@ export default function EventsPage() {
                         disabled={
                             saving
                         }
-                        className="border rounded p-3 disabled:opacity-50"
+                        className="button-primary w-full sm:w-auto"
                     >
                         {saving
                             ? "Saving..."

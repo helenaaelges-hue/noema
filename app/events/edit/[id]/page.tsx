@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 import Link from "next/link";
+import {ErrorState, LoadingState} from "@/src/components/ui/PageState";
 
 type Category = {
     id: number;
@@ -371,8 +372,10 @@ export default function EditEventPage() {
 
     if (loading) {
         return (
-            <main className="p-8 max-w-xl mx-auto">
-                <p>Loading...</p>
+            <main className="page-shell-narrow">
+                <LoadingState
+                    message="Loading event..."
+                />
             </main>
         );
     }
@@ -382,52 +385,63 @@ export default function EditEventPage() {
         !category
     ) {
         return (
-            <main className="p-8 max-w-xl mx-auto">
-                <Link href="/events-list">
+            <main className="page-shell-narrow">
+                <Link 
+                    href="/events-list"
+                    className="text-link"
+                >
                     &larr; Back to Event History
                 </Link>
 
-                <p
-                    role="alert"
-                    className="mt-6 text-red-700"
-                >
-                    {error}
-                </p>
+                <div className="mt-6">
+                    <ErrorState
+                        message={error}
+                    />
+                </div>
             </main>
         );
     }
 
     return (
-        <main className="p-8 max-w-xl mx-auto">
-            <Link href="/events-list">
+        <main className="page-shell-narrow">
+            <Link
+                href="/events-list"
+                className="text-link"
+            >
                 &larr; Back to Event History
             </Link>
 
-            <h1 className="text-3xl font-bold mt-4 mb-6">
-                Edit Event
-            </h1>
+            <div className="mb-8 mt-5">
+                <h1 className="page-heading">
+                    Edit Event
+                </h1>
 
-            <div className="space-y-4">
+                <p className="page-description">
+                    Update the details of this recorded event.
+                </p>
+            </div>
+
+            <div className="surface-card space-y-5">
                 {error && (
-                    <p
+                    <div
                         role="alert"
-                        className="text-red-700"
+                        className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
                     >
                         {error}
-                    </p>
+                    </div>
                 )}
 
                 <div>
                     <label
                         htmlFor="category"
-                        className="block mb-2 font-medium"
+                        className="field-label"
                     >
                         Category
                     </label>
 
                     <select
                         id="category"
-                        className="border p-2 w-full"
+                        className="field-input"
                         value={category}
                         onChange={event =>
                             setCategory(
@@ -457,14 +471,14 @@ export default function EditEventPage() {
                 <div>
                     <label
                         htmlFor="value"
-                        className="block mb-2 font-medium"
+                        className="field-label"
                     >
                         Value
                     </label>
 
                     <input
                         id="value"
-                        className="border p-2 w-full"
+                        className="field-input"
                         value={value}
                         required
                         onChange={event =>
@@ -479,7 +493,7 @@ export default function EditEventPage() {
                     <div>
                         <label
                             htmlFor="moodScore"
-                            className="block mb-2 font-medium"
+                            className="field-label"
                         >
                             Mood Score
                         </label>
@@ -497,27 +511,28 @@ export default function EditEventPage() {
                                     event.target.value
                                 )
                             }
-                            className="w-full border rounded px-3 py-2"
+                            className="field-input"
                         />
                     </div>
                 )}
 
                 <fieldset>
-                    <legend className="mb-2 font-medium">
+                    <legend className="field-label">
                         Triggers
                     </legend>
 
-                    <div className="space-y-2">
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {triggers.map(
                             trigger => (
                                 <label
                                     key={
                                         trigger.id
                                     }
-                                    className="flex items-center gap-2"
+                                    className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
                                 >
                                     <input
                                         type="checkbox"
+                                        className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                         checked={
                                             selectedTriggers
                                                 .includes(
@@ -545,14 +560,15 @@ export default function EditEventPage() {
                 <div>
                     <label
                         htmlFor="notes"
-                        className="block mb-2 font-medium"
+                        className="field-label"
                     >
                         Notes
                     </label>
 
                     <textarea
                         id="notes"
-                        className="border p-2 w-full"
+                        rows={4}
+                        className="field-input"
                         value={notes}
                         onChange={event =>
                             setNotes(
@@ -565,7 +581,7 @@ export default function EditEventPage() {
                 <div>
                     <label
                         htmlFor="eventDate"
-                        className="block mb-2 font-medium"
+                        className="field-label"
                     >
                         Event Date
                     </label>
@@ -573,7 +589,7 @@ export default function EditEventPage() {
                     <input
                         id="eventDate"
                         type="datetime-local"
-                        className="border p-2 w-full"
+                        className="field-input"
                         value={eventDate}
                         required
                         onChange={event =>
@@ -588,7 +604,7 @@ export default function EditEventPage() {
                     type="button"
                     onClick={updateEvent}
                     disabled={saving}
-                    className="border rounded p-3 disabled:opacity-50"
+                    className="button-primary w-full sm:w-auto"
                 >
                     {saving
                         ? "Saving..."

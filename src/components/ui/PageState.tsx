@@ -11,9 +11,16 @@ export function LoadingState({
     return (
         <div
             role="status"
-            className="rounded border p-6 text-gray-600"
+            className="surface-card flex items-center gap-3 text-slate-600"
         >
-            {message}
+            <span
+                aria-hidden="true"
+                className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600"
+            />
+
+            <span>
+                {message}
+            </span>
         </div>
     );
 }
@@ -28,13 +35,13 @@ export function ErrorState({
     return (
         <div
             role="alert"
-            className="rounded border border-red-200 bg-red-50 p-6 text-red-700"
+            className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800"
         >
-            <p className="font-medium">
+            <p className="font-semibold">
                 Something went wrong
             </p>
 
-            <p className="mt-1">
+            <p className="mt-1 text-sm">
                 {message}
             </p>
         </div>
@@ -57,12 +64,16 @@ export function EmptyState({
     children,
 }: EmptyStateProps) {
     return (
-        <div className="rounded border border-dashed p-8 text-center mt-3">
-            <h2 className="text-lg font-semibold">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-xl text-indigo-700">
+                ✦
+            </div>
+
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">
                 {title}
             </h2>
 
-            <p className="mt-2 text-gray-600">
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
                 {description}
             </p>
 
@@ -70,13 +81,17 @@ export function EmptyState({
                 actionLabel && (
                     <Link
                         href={actionHref}
-                        className="mt-4 inline-block rounded bg-black px-4 py-2 text-white"
+                        className="button-primary mt-5"
                     >
                         {actionLabel}
                     </Link>
                 )}
 
-            {children}
+            {children && (
+                <div className="mt-5">
+                    {children}
+                </div>
+            )}
         </div>
     );
 }
