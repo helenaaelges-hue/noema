@@ -68,15 +68,14 @@ export default function TriggerCombinationsSection({
                             }
                             className="rounded-xl border border-slate-200 p-4"
                         >
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                    <h3 className="font-semibold text-slate-900">
-                                        {
-                                            combo.label
-                                        }
-                                    </h3>
+                            <h3 className="font-semibold text-slate-900">
+                                {
+                                    combo.label
+                                }
+                            </h3>
 
-                                    <p className="mt-2 text-sm text-slate-600">
+                            <div className="mt-2">                                    
+                                    <p className="text-sm text-slate-600">
                                         Average mood:{" "}
                                         <strong className="text-slate-900">
                                             {combo.averageMood.toFixed(
@@ -97,19 +96,20 @@ export default function TriggerCombinationsSection({
                                     </p>
 
                                     <p className="text-sm text-slate-600">
-                                        Entries:{" "}
+                                        Entries:
                                         {
                                             combo.entries
                                         }
                                     </p>
                                 </div>
 
-                                <ConfidenceBadge
-                                    level={confidenceLabel(
-                                        combo.entries
-                                    )}
-                                />
-                            </div>
+                                <div className="mt-4">
+                                    <ConfidenceBadge
+                                        level={confidenceLabel(
+                                            combo.entries
+                                        )}
+                                    />
+                                </div>
                         </article>
                     ))}
             </div>

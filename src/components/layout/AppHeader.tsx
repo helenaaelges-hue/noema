@@ -36,29 +36,25 @@ export default function AppHeader({
                 >
                     <Link
                         href="/"
-                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    >
+                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 outline-none hover:bg-slate-100 hover:text-slate-900 focus-visible:bg-indigo-50 focus-visible:text-indigo-800 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"                    >
                         Home
                     </Link>
 
                     <Link
                         href="/events"
-                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    >
+                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 outline-none hover:bg-slate-100 hover:text-slate-900 focus-visible:bg-indigo-50 focus-visible:text-indigo-800 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"                    >
                         Record Event
                     </Link>
 
                     <Link
                         href="/events-list"
-                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    >
+                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 outline-none hover:bg-slate-100 hover:text-slate-900 focus-visible:bg-indigo-50 focus-visible:text-indigo-800 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"                    >
                         Event History
                     </Link>
 
                     <Link
                         href="/analytics"
-                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    >
+                        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-600 outline-none hover:bg-slate-100 hover:text-slate-900 focus-visible:bg-indigo-50 focus-visible:text-indigo-800 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"                    >
                         Analytics
                     </Link>
                 </nav>

@@ -60,7 +60,7 @@ export default function TriggerAnalysisSection({
                 compared with your overall
                 mood average of{" "}
                 <strong>
-                    {overallAverage}
+                    {overallAverage.toFixed(1)}
                 </strong>
                 . These are associations,
                 not proven causes.
@@ -186,15 +186,15 @@ export default function TriggerAnalysisSection({
                             }
                             className="rounded-xl border border-slate-200 p-4"
                         >
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                    <h3 className="font-semibold text-slate-900">
-                                        {
-                                            item.trigger
-                                        }
-                                    </h3>
 
-                                    <p className="mt-1 text-sm text-slate-600">
+                            <h3 className="font-semibold text-slate-900">
+                                {
+                                    item.trigger
+                                }
+                            </h3>
+
+                            <div className="mt-2">
+                                    <p className="text-sm text-slate-600">
                                         Average mood:{" "}
                                         {
                                             item.average
@@ -217,12 +217,13 @@ export default function TriggerAnalysisSection({
                                     </p>
                                 </div>
 
-                                <ConfidenceBadge
-                                    level={confidenceLabel(
-                                        item.entries
-                                    )}
-                                />
-                            </div>
+                                <div className="mt-4">
+                                    <ConfidenceBadge
+                                        level={confidenceLabel(
+                                            item.entries
+                                        )}
+                                    />
+                                </div>
                         </article>
                     ))}
             </div>

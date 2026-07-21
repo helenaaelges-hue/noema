@@ -64,6 +64,22 @@ async function readJsonResponse(
     }
 }
 
+function toLocalDateTimeInput(
+    value: string | Date
+): string {
+    const date = new Date(value);
+
+    const localDate = new Date(
+        date.getTime() -
+        date.getTimezoneOffset() *
+            60_000
+    );
+
+    return localDate
+        .toISOString()
+        .slice(0, 16);
+}
+
 export default function EditEventPage() {
     const params = 
         useParams<{
@@ -214,11 +230,9 @@ export default function EditEventPage() {
                 );
 
                 setEventDate(
-                    new Date(
+                    toLocalDateTimeInput(
                         event.eventDate
                     )
-                        .toISOString()
-                        .slice(0, 16)
                 );
 
                 setSelectedTriggers(

@@ -47,84 +47,87 @@ export default function MoodSection({
                     mood scores.
                 </p>
 
-                <div className="mt-4 h-80 w-full min-w-0">
-                    <ResponsiveContainer
-                        width="100%"
-                        height="100%"
-                    >
-                        <LineChart
-                            data={moodData}
-                            margin={{
-                                top: 8,
-                                right: 8,
-                                left: -20,
-                                bottom: 8,
-                            }}
+                <div className="mt-4 overflow-x-auto pb-2">
+                    <div className="h-80 min-w-[720px]">
+                        <ResponsiveContainer
+                            width="100%"
+                            height={320}
+                            minWidth={720}
                         >
-                            <CartesianGrid
-                                strokeDasharray="3 3"
-                            />
-
-                            <XAxis
-                                dataKey="day"
-                                tick={{
-                                    fontSize:
-                                        12,
+                            <LineChart
+                                data={moodData}
+                                margin={{
+                                    top: 8,
+                                    right: 8,
+                                    left: -20,
+                                    bottom: 8,
                                 }}
-                                minTickGap={24}
-                            />
+                            >
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                />
 
-                            <YAxis
-                                domain={[
-                                    0,
-                                    10,
-                                ]}
-                                tick={{
-                                    fontSize:
-                                        12,
-                                }}
-                            />
+                                <XAxis
+                                    dataKey="day"
+                                    tick={{
+                                        fontSize:
+                                            12,
+                                    }}
+                                    minTickGap={40}
+                                />
 
-                            <Tooltip
-                                formatter={(
-                                    value,
-                                    name
-                                ) => {
-                                    if (
-                                        name ===
-                                        "mood"
-                                    ) {
+                                <YAxis
+                                    domain={[
+                                        0,
+                                        10,
+                                    ]}
+                                    tick={{
+                                        fontSize:
+                                            12,
+                                    }}
+                                />
+
+                                <Tooltip
+                                    formatter={(
+                                        value,
+                                        name
+                                    ) => {
+                                        if (
+                                            name ===
+                                            "mood"
+                                        ) {
+                                            return [
+                                                value,
+                                                "Trend",
+                                            ];
+                                        }
+
                                         return [
                                             value,
-                                            "Trend",
+                                            "Actual",
                                         ];
-                                    }
+                                    }}
+                                />
 
-                                    return [
-                                        value,
-                                        "Actual",
-                                    ];
-                                }}
-                            />
+                                <Line
+                                    type="monotone"
+                                    dataKey="actual"
+                                    stroke="#94a3b8"
+                                    strokeWidth={1.5}
+                                    dot={false}
+                                    connectNulls
+                                />
 
-                            <Line
-                                type="monotone"
-                                dataKey="actual"
-                                stroke="#94a3b8"
-                                strokeWidth={1.5}
-                                dot={false}
-                                connectNulls
-                            />
-
-                            <Line
-                                type="monotone"
-                                dataKey="mood"
-                                stroke="#4f46e5"
-                                strokeWidth={3}
-                                dot={false}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                                <Line
+                                    type="monotone"
+                                    dataKey="mood"
+                                    stroke="#4f46e5"
+                                    strokeWidth={3}
+                                    dot={false}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </section>
 
@@ -138,10 +141,11 @@ export default function MoodSection({
                     recorded at each score.
                 </p>
 
-                <div className="mt-4 h-72 w-full min-w-0">
+                <div className="mt-4 w-full min-w-0">
                     <ResponsiveContainer
                         width="100%"
-                        height="100%"
+                        height={288}
+                        minWidth={0}
                     >
                         <BarChart
                             data={

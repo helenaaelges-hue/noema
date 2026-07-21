@@ -25,6 +25,9 @@ export default function EventsListPage() {
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [deletingEventId, setDeletingEventId] = useState<number | null>(
+        null
+    );
 
     useEffect(() => {
         async function loadEvents() {
@@ -86,29 +89,59 @@ export default function EventsListPage() {
         loadEvents();
     }, []);
 
-    async function deleteEvent(id: number) {
-        const confirmed = confirm(
-            "Are you sure you want to delete this event?"
-        );
+    async function deleteEvent(
+        id: number
+    ) {
+        if (
+            deletingEventId !== null
+        ) {
+            return;
+        }
 
-        if (!confirmed) return;
-
-        setError("");
-
-        try {
-            const response = await fetch(
-                `/api/events/${id}`,
-                {
-                    method: "DELETE",
-                }
+        const confirmed =
+            window.confirm(
+                "Are you sure you want to delete this event?"
             );
 
-            if (response.ok) {
-                const data: unknown =
-                    await response.json();
+        if (!confirmed) {
+            return;
+        }
 
+        setError("");
+        setDeletingEventId(id);
+
+        try {
+            const response =
+                await fetch(
+                    `/api/events/${id}`,
+                    {
+                        method: "DELETE",
+                    }
+                );
+
+            const responseText =
+                await response.text();
+
+            let data: unknown = null;
+
+            if (responseText) {
+                try {
+                    data =
+                        JSON.parse(
+                            responseText
+                        );
+                } catch {
+                    if (!response.ok) {
+                        throw new Error(
+                            "The server returned an invalid response."
+                        );
+                    }
+                }
+            }
+
+            if (!response.ok) {
                 const message =
-                    data &&
+                    data !== null &&
                     typeof data ===
                         "object" &&
                     "error" in data &&
@@ -120,11 +153,12 @@ export default function EventsListPage() {
                 throw new Error(message);
             }
 
-            setEvents(currentEvents =>
-                currentEvents.filter(
-                    event =>
-                        event.id !== id
-                )
+            setEvents(
+                currentEvents =>
+                    currentEvents.filter(
+                        event =>
+                            event.id !== id
+                    )
             );
         } catch (deleteError) {
             setError(
@@ -132,6 +166,8 @@ export default function EventsListPage() {
                     ? deleteError.message
                     : "Failed to delete event."
             );
+        } finally {
+            setDeletingEventId(null);
         }
     }
 
@@ -314,9 +350,13 @@ export default function EventsListPage() {
                                 <button
                                     type="button"
                                     onClick={() => deleteEvent(event.id)}
+                                    disabled={deletingEventId !== null}
                                     className="button-danger"
                                 >
-                                    Delete
+                                    {deletingEventId ===
+                                    event.id
+                                        ? "Deleting..."
+                                        : "Delete"}
                                 </button>
                             </div>
                         </article>

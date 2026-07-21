@@ -501,7 +501,12 @@ export async function DELETE(
         }),
     ]);
 
-    return NextResponse.json({
+    return NextResponse.json(
+        {
         success: true,
-    });
+        },
+        {
+            status: 200,
+        }
+    );
 }
