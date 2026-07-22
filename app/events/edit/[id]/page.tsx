@@ -109,11 +109,6 @@ export default function EditEventPage() {
 
     useEffect(() => {
         if (!eventId) {
-            setError(
-                "Invalid event ID."
-            );
-
-            setLoading(false);
             return;
         }
 
@@ -269,15 +264,6 @@ export default function EditEventPage() {
         loadPageData();
     }, [eventId]);
 
-    useEffect(() => {
-        if (
-            category &&
-            category !== "Mood"
-        ) {
-            setMoodScore("");
-        }
-    }, [category]);
-
     async function updateEvent() {
         if (!eventId) {
             setError(
@@ -384,6 +370,25 @@ export default function EditEventPage() {
         );
     }
 
+    if (!eventId) {
+        return (
+            <main className="page-shell-narrow">
+                <Link
+                    href="/events-list"
+                    className="text-link"
+                >
+                    &larr; Back to Event History
+                </Link>
+
+                <div className="mt-6">
+                    <ErrorState
+                        message="Invalid event ID."
+                    />
+                </div>
+            </main>
+        );
+    }
+
     if (loading) {
         return (
             <main className="page-shell-narrow">
@@ -457,11 +462,21 @@ export default function EditEventPage() {
                         id="category"
                         className="field-input"
                         value={category}
-                        onChange={event =>
+                        onChange={event => {
+                            const nextCategory =
+                                event.target.value;
+
                             setCategory(
-                                event.target.value
-                            )
-                        }
+                                nextCategory
+                            );
+
+                            if (
+                                nextCategory !==
+                                "Mood"
+                            ) {
+                                setMoodScore("");
+                            }
+                        }}
                     >
                         {categories.map(
                             categoryOption => (

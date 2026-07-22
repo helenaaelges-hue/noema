@@ -29,11 +29,6 @@ export function generateInsights(
 
         const best = triggerData[0];
 
-        const weakTriggers =
-            triggerData.filter(
-                t => t.entries < 5
-            );
-
         if (
             Math.abs(best.difference) >= 1
         ) {

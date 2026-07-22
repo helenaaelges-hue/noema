@@ -2,7 +2,6 @@
 
 import {useEffect, useState} from "react";
 import type {SubmitEventHandler} from "react";
-import Link from "next/link";
 import {ErrorState, LoadingState} from "@/src/components/ui/PageState";
 import {sortByName} from "@/src/lib/names";
 
@@ -184,15 +183,6 @@ export default function EventsPage() {
 
         loadOptions();
     }, []);
-
-    useEffect(() => {
-        if (
-            category &&
-            category !== "Mood"
-        ) {
-            setMoodScore("");
-        }
-    }, [category]);
     
     async function addCategory() {
         const name =
@@ -668,10 +658,21 @@ export default function EventsPage() {
                             className="field-input"
                             value={category}
                             required
-                            onChange={
-                                event =>
-                                    setCategory(event.target.value)
-                            }
+                            onChange={event => {
+                                const nextCategory =
+                                    event.target.value;
+
+                                setCategory(
+                                    nextCategory
+                                );
+
+                                if (
+                                    nextCategory !==
+                                    "Mood"
+                                ) {
+                                    setMoodScore("");
+                                }
+                            }}
                         >
                             <option value="">
                                 Select Category

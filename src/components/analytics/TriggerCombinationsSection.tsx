@@ -96,7 +96,7 @@ export default function TriggerCombinationsSection({
                                     </p>
 
                                     <p className="text-sm text-slate-600">
-                                        Entries:
+                                        Entries:{" "}
                                         {
                                             combo.entries
                                         }

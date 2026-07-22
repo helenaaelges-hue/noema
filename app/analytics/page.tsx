@@ -16,6 +16,7 @@ import CategoryAnalysisSection from "@/src/components/analytics/CategoryAnalysis
 
 //Analytics helpers
 import {getAverageMood, getLatestMood, getCategoryCounts, getTriggerMoodAverages, confidenceLabel} from "@/src/lib/insights";
+import type {AnalyticsEvent} from "@/src/lib/insights";
 import {getMoodPerTrigger, getOverallAverageMood} from "@/src/lib/correlations";
 import {getSelectionAverageMood, moodDifferenceFromBaseLine} from "@/src/lib/selectionAnalytics";
 import {filterByTimeRange, TimeRange} from "@/src/lib/timeFilter";
@@ -29,7 +30,7 @@ import {EmptyState, ErrorState, LoadingState} from "@/src/components/ui/PageStat
 
 
 export default function AnalyticsPage() {
-    const [events, setEvents] = useState<any[]>([]);
+    const [events, setEvents] = useState<AnalyticsEvent[]>([]);
     const [selectedTrigger, setSelectedTrigger] = useState<number | null>(null);
     const [timeRange, setTimeRange] = useState<TimeRange>("30d");
     const [loading, setLoading] = useState(true);
@@ -77,7 +78,7 @@ export default function AnalyticsPage() {
                     );
                 }
 
-                setEvents(data);
+                setEvents(data as AnalyticsEvent[]);
             } catch (loadError) {
                 setEvents([]);
 

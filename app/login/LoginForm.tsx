@@ -175,20 +175,6 @@ export default function LoginForm() {
                         Register
                     </Link>
                 </p>
-
-                <div className="mt-6 rounded-xl bg-indigo-50 p-4 text-sm text-indigo-900">
-                    <p className="font-semibold">
-                        Demo account
-                    </p>
-
-                    <p className="mt-2">
-                        Email: demo@noema.local
-                    </p>
-
-                    <p>
-                        Password: demo12345
-                    </p>
-                </div>
             </section>
         </main>
     );

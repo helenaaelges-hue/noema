@@ -4,9 +4,16 @@ import Link from 'next/link';
 import { useEffect, useState } from "react";
 import {EmptyState, ErrorState, LoadingState} from "@/src/components/ui/PageState";
 
+type RecentEvent = {
+  id: number;
+  category: string;
+  value: string;
+  eventDate: string;
+};
+
 export default function Home() {
 
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<RecentEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -40,7 +47,11 @@ export default function Home() {
           );
         }
 
-        setEvents(data.slice(0, 5));
+        setEvents(
+          (
+            data as RecentEvent[]
+          ).slice(0, 5)
+        );
       } catch (loadError) {
           setEvents([]);
 
