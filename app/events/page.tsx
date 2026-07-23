@@ -537,7 +537,10 @@ export default function EventsPage() {
                             },
                             body:
                                 JSON.stringify({
-                                    eventDate,
+                                    eventDate:
+                                        new Date(
+                                            eventDate
+                                        ).toISOString(),
                                     category,
                                     value:
                                         value.trim(),

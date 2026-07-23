@@ -3,62 +3,68 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Event {
-  id        Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   categoryId Int
-
-  category  Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   value     String
   moodScore Int?
 
-  triggers  EventTrigger[]
-  notes     String?
+  triggers EventTrigger[]
+  notes    String?
 
   eventDate DateTime
   createdAt DateTime @default(now())
 
-  userId    Int
-  user      User @relation(fields: [userId], references: [id])
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([eventDate])
 }
 
 model Category {
-  id     Int     @id @default(autoincrement())
-  name   String 
+  id   Int    @id @default(autoincrement())
+  name String
 
   userId Int
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   events Event[]
 
   @@unique([userId, name])
+  @@index([userId])
 }
 
 model Trigger {
-  id     Int     @id @default(autoincrement())
-  name   String  
+  id   Int    @id @default(autoincrement())
+  name String
 
   userId Int
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   events EventTrigger[]
 
   @@unique([userId, name])
+  @@index([userId])
 }
 
 model EventTrigger {
   eventId   Int
   triggerId Int
 
-  event     Event   @relation(fields: [eventId], references: [id])
-  trigger   Trigger @relation(fields: [triggerId], references: [id])
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  trigger Trigger @relation(fields: [triggerId], references: [id], onDelete: Cascade)
 
   @@id([eventId, triggerId])
+  @@index([triggerId])
 }
 
 model User {
@@ -66,7 +72,6 @@ model User {
   name         String
   email        String   @unique
   passwordHash String
-
   createdAt    DateTime @default(now())
 
   events     Event[]

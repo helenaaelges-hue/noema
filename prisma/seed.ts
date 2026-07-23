@@ -6,6 +6,24 @@ const prisma = new PrismaClient();
 const DEMO_EMAIL = "demo@noema.local";
 const DEMO_PASSWORD = "demo12345";
 
+const isProduction =
+    process.env.NODE_ENV ===
+    "production";
+
+const destructiveSeedAllowed =
+    process.env
+        .ALLOW_DESTRUCTIVE_SEED ===
+    "true";
+
+if (
+    isProduction &&
+    !destructiveSeedAllowed
+) {
+    throw new Error(
+        "Destructive seeding is disabled in production. Set ALLOW_DESTRUCTIVE_SEED=true only for an intentional demo database reset."
+    );
+}
+
 function randomItem<T>(array: T[]): T {
     return array[
         Math.floor(Math.random() * array.length)

@@ -313,7 +313,10 @@ export default function EditEventPage() {
                             notes:
                                 notes.trim(),
 
-                            eventDate,
+                            eventDate:
+                                new Date(
+                                    eventDate
+                                ).toISOString(),
                         }),
                     }
                 );

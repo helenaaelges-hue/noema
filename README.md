@@ -27,10 +27,36 @@ Noema is a personal event-tracking and analytics application. It allows users to
 - TypeScript
 - Tailwind CSS
 - Prisma ORM
-- SQLite
+- PostgreSQL
 - Auth.js / NextAuth
 - Recharts
 - Vitest
+
+## Docker Compose
+
+Build and start the services:
+
+```bash
+docker compose up --build
+```
+
+Seed the demo database:
+
+```bash
+docker compose --profile seed run --rm seed
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Stop the services:
+
+```bash
+docker compose down
+```
 
 ## Application Architecture
 
